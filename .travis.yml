@@ -1,0 +1,34 @@
+language: go
+
+go:
+  - 1.12.x
+
+
+os:
+  - linux
+
+go_import_path: github.com/appsody/controller
+
+services:
+- docker
+
+# skip because dependencies are baked in vendor dir
+install: true
+
+script:
+  - make lint
+  - make test
+
+# note before_deploy will run before each deploy provider
+before_deploy:
+  - make VERSION=${TRAVIS_TAG} package
+
+deploy:
+  provider: releases
+  skip_cleanup: true
+  api_key:
+    secure: "U42p5xE207uWwJNG4I0bdVkz6oyLZgy1H6rr4yZ9V5jzMXGZkhQddBxv1nCful8rd2rUmUFehzy8XnKQAS+J56GKc+TStmyyv0vFwOH8mkVXog9APiSMAWxIXU4EC2W9YrvVc9NVNZtlU5e8qMh3pM1a9Wnzm0/lOsFEnuxjbsDmcnk/1xjVd3CP9CvVgvTsmvG50JHG24dj/7t3Swo31TuQnTMygViVSNjiqYVcQR/sUJg+mUZ5EEkMvlfUAy1V+gjCoavTedp+SRIHRyNDMzk+2cea8x2cFJNvWhB+7sIJmZ417w/WnGoOLqyXzuY9htPUXdN6cQIHjZ3Uq0qd2Cbs9BA8qcwD03IeXd012j2RwanJX2HAlCRoivBRNHKps9sclauk6/a9S06lg4h0gHLucYkGMuMSYE2lzhc+jmvrh5F96LNz/HsFEgFmo3dgKtuupzUTzEJv+FfqV8AsjD+7oU1Ju0k5nwn/VL5MTJkbejXpTeE7lckOtZ5nfmRFofz3rmeyqmFytBuOFc156X9cHJfULC4JF49PMrNgatDwH0gNhGSMNu05b+v/dU/hbGmohCmo+tz1gg4mdcS1NgfKuKEhgYs+7wGha5fbxSSmsc/+yU4XwW6mjfSE8pOq/MYI4I2JWKRgCt95XgaH6DBZerxrCi+2VcUX5y2To9k="
+  file: package/*
+  file_glob: true
+  on:
+    tags: true
