@@ -3,10 +3,6 @@ language: go
 go:
   - 1.12.x
 
-# needed for github enterprise deployment
-env:
-  global:
-    - OCTOKIT_API_ENDPOINT="https://github.com/api/v3"
 
 os:
   - linux
