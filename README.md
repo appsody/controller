@@ -1,3 +1,12 @@
+![](https://raw.githubusercontent.com/appsody/website/master/src/images/appsody_full_logo.svg?sanitize=true)
+
+## Welcome to Appsody!
+<https://appsody.dev>
+
+#### Compose a cloud native masterpiece.
+
+Infused with cloud native capabilities from the moment you start, Appsody provides everything you need to iteratively develop applications, ready for deployment to Kubernetes environments. Teams are empowered with sharable technology stacks, configurable and controllable through a central hub.
+
 # appsody-controller 
 The appsody-controller is an appsody process that runs inside the docker container, it does any preinstall required, starts the server with the command specified for run, debug or test mode, and watches for file changes, if configured to do so.  If so configured, when file or directory changes occur it runs a an "ON_CHANGE" action specific to the mode.
 
@@ -160,5 +169,14 @@ This can be specified in several ways (note --verbose and -v are interchangeable
 >--v=false   Debug logging is off  
 >--v=true   Debug logging is on  
 
+## Contributing
 
+We welcome all contributions to the Appsody project. Please see our [Contributing guidelines](https://github.com/appsody/docs/blob/master/CONTRIBUTING.md)
 
+## Community
+
+Join our [Slack](https://appsody-slack.eu-gb.mybluemix.net/) to meet the team, ask for help, and talk about Appsody!
+
+## Licence
+
+Please see [LICENSE](https://github.com/appsody/docs/blob/master/LICENSE) and [NOTICES](https://github.com/appsody/website/blob/master/NOTICE.md) for more information.
