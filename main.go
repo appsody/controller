@@ -537,19 +537,33 @@ func runCommands(commandString string, theProcessType ProcessType, killServer bo
 			// do nothing we continue after kill errors
 			Warning.log("Watcher killProcess received error ", err)
 		}
-		cmd, err = startProcess(commandString, fileWatcher)
-		if err != nil {
 
-			Warning.log("ERROR start process for file watcher received error ", err)
+		commandToUse := commandString
+		processTypeToUse := fileWatcher
+
+		if !killServer {
+			// this path is only relevant for APPSODY_<RUN/DEBUG/TEST>KILL_SERVER=FALSE
+			// get the process of the current server (should not be nil ever) and send benign SIG 0 to the server proces
+			if cmps.processes[server] != nil && cmps.processes[server].Signal(syscall.Signal(0)) != nil {
+				// if there is no server process, an error is returned
+				Debug.log("The server process with pid:", cmps.processes[server].Pid, "was not found, and APPSODY_<action>_KILL is set to false. The server will be restarted.")
+				//start the server with the startCommand, not the watch action command
+				commandToUse = startCommand
+				processTypeToUse = server
+			}
+		}
+
+		cmd, err = startProcess(commandToUse, processTypeToUse)
+
+		if err != nil {
+			Warning.log("ERROR start process received error: ", err)
 		}
 		cmps.mu.Unlock()
 		mutexUnlocked = true
 		Debug.log("mutex unlocked")
-		err = waitProcess(cmd, theProcessType)
+		err = waitProcess(cmd, processTypeToUse)
 		if err != nil {
-
 			// do nothing as the kill causees and error condition
-
 			Info.log("Wait received error ", err)
 		}
 
@@ -563,6 +577,9 @@ func runCommands(commandString string, theProcessType ProcessType, killServer bo
 	Debug.log("runCommands EXIT")
 
 }
+
+var startCommand string
+
 func main() {
 
 	var err error
@@ -571,7 +588,7 @@ func main() {
 	testMode := false
 	var dirs []string
 	var stopWatchServerOnChange bool
-	startCommand := ""
+
 	errorMessage := ""
 	var errWorkDir error
 
