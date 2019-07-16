@@ -39,7 +39,7 @@ var appsodyRUNWATCHACTION string //# command to run when files change, optional,
 var appsodyDEBUG string
 var appsodyRUN string
 var appsodyTEST string
-var appsodyINSTALL string
+var appsodyINSTALL string // Note this will be deprecated in a future release
 var appsodyMOUNTS []string
 
 var appsodyWATCHREGEX string
@@ -208,7 +208,7 @@ func setupEnvironmentVars() error {
 	appsodyRUNWATCHACTION = os.Getenv("APPSODY_RUN_ON_CHANGE")
 	Debug.log("APPSODY_RUN_ON_CHANGE: " + appsodyRUNWATCHACTION)
 
-	appsodyINSTALL = os.Getenv("APPSODY_INSTALL")
+	appsodyINSTALL = os.Getenv("APPSODY_INSTALL") // Note this will be deprecated in a future release
 	Debug.log("APPSODY_INSTALL: " + appsodyINSTALL)
 
 	appsodyPREP = os.Getenv("APPSODY_PREP")
@@ -334,9 +334,9 @@ func killProcess(theProcessType ProcessType) error {
 }
 
 /*
-	runInstall
+	runPrep
 */
-func runInstall(commandString string) (*exec.Cmd, error) {
+func runPrep(commandString string) (*exec.Cmd, error) {
 	var err error
 	Info.log("Running Install: " + commandString)
 	cmd := exec.Command("/bin/bash", "-c", commandString)
@@ -509,7 +509,7 @@ func runCommands(commandString string, theProcessType ProcessType, killServer bo
 	if theProcessType == server {
 
 		if appsodyPREP != "" {
-			_, err = runInstall(appsodyPREP)
+			_, err = runPrep(appsodyPREP)
 		}
 		if err != nil {
 			Error.log("FATAL error APPSODY_PREP command received an error.  The controller is exiting: ", err)
