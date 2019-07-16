@@ -43,6 +43,7 @@ var appsodyINSTALL string
 var appsodyMOUNTS []string
 
 var appsodyWATCHREGEX string
+var appsodyPREP string
 var appsodyWATCHINTERVAL time.Duration
 var appsodyDEBUGWATCHACTION string
 var appsodyTESTWATCHACTION string
@@ -209,6 +210,12 @@ func setupEnvironmentVars() error {
 
 	appsodyINSTALL = os.Getenv("APPSODY_INSTALL")
 	Debug.log("APPSODY_INSTALL: " + appsodyINSTALL)
+
+	appsodyPREP = os.Getenv("APPSODY_PREP")
+	Debug.log("APPSODY_PREP: " + appsodyPREP)
+	if appsodyPREP == "" {
+		appsodyPREP = appsodyINSTALL
+	}
 
 	appsodyDEBUG = os.Getenv("APPSODY_DEBUG")
 	Debug.log("APPSODY_DEBUG: " + appsodyDEBUG)
@@ -501,11 +508,12 @@ func runCommands(commandString string, theProcessType ProcessType, killServer bo
 	Debug.log("Mutex Locked")
 	if theProcessType == server {
 
-		if appsodyINSTALL != "" {
-			_, err = runInstall(appsodyINSTALL)
+		if appsodyPREP != "" {
+			_, err = runInstall(appsodyPREP)
 		}
 		if err != nil {
-			Warning.log("ERROR Install (APPSODY_INSTALL) received error ", err)
+			Error.log("FATAL error APPSODY_PREP command received an error.  The controller is exiting: ", err)
+			os.Exit(1)
 		}
 		// keep going
 		cmd, err = startProcess(commandString, server)

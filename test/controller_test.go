@@ -103,8 +103,8 @@ func TestWatchAction(t *testing.T) {
 
 }
 
-func TestBadInstall(t *testing.T) {
-	log.Println("TestBadInstall")
+func TestBadPrep(t *testing.T) {
+	log.Println("TestBadPrep")
 
 	projectDir, err := ioutil.TempDir("", "watchdir2")
 	if err != nil {
@@ -112,7 +112,7 @@ func TestBadInstall(t *testing.T) {
 	}
 	defer os.RemoveAll(projectDir)
 	// call t.Run so that we can name and report on individual tests
-	t.Run("TestBadInstall", func(t *testing.T) {
+	t.Run("TestBadPrep", func(t *testing.T) {
 		/* The following environment variables are set:
 		APPSODY_WATCH_REGEX - watch java files
 		APPSODY_WATCH_DIR
@@ -120,19 +120,19 @@ func TestBadInstall(t *testing.T) {
 		APPSODY_MOUNTS
 		APPSODY_RUN_ON_CHANGE
 		APPSODY_RUN
-		APPSODY_INSTALL -bad command given
+		APPSODY_PREP -bad command given
 		APPSODY_DEBUG
 		The controller is executed with verbose logging
-		The output is checked for an APPSODY_INSTALL error
+		The output is checked for an APPSODY_PREP error
 		*/
-		args := []string{"export APPSODY_WATCH_REGEX=\"(^.*.java$)\";export APPSODY_WATCH_DIR=" + projectDir + ";export APPSODY_WATCH_INTERVAL=1;export APPSODY_MOUNTS=\"/bad:" + projectDir + "\";export APPSODY_RUN_ON_CHANGE=\"sleep 2\";export APPSODY_INSTALL=\"badbad\" ; export APPSODY_RUN=\"sleep 10\";export APPSODY_DEBUG=\"echo debug \";env |grep APPSODY;go run ../main.go -v=true"}
+		args := []string{"export APPSODY_WATCH_REGEX=\"(^.*.java$)\";export APPSODY_WATCH_DIR=" + projectDir + ";export APPSODY_WATCH_INTERVAL=1;export APPSODY_MOUNTS=\"/bad:" + projectDir + "\";export APPSODY_RUN_ON_CHANGE=\"sleep 2\";export APPSODY_PREP=\"badbad\" ; export APPSODY_RUN=\"sleep 10\";export APPSODY_DEBUG=\"echo debug \";env |grep APPSODY;go run ../main.go -v=true"}
 
 		output, err := RunBashCmdExecAndKillAndTouch(args, ".", true, projectDir)
 		log.Println("This is the output: " + output)
 
 		log.Printf("error is:  %v\n", err)
 
-		if strings.Contains(output, "ERROR Install (APPSODY_INSTALL) received error") {
+		if strings.Contains(output, "FATAL error APPSODY_PREP command received an error.  The controller is exiting") {
 
 			log.Println("pass")
 		} else {
@@ -161,12 +161,12 @@ func TestBadAPPSODYRun(t *testing.T) {
 		APPSODY_MOUNTS
 		APPSODY_RUN_ON_CHANGE
 		APPSODY_RUN - bad command given
-		APPSODY_INSTALL
+		APPSODY_PREP
 		APPSODY_DEBUG
 		The controller is executed with verbose logging
 		The output is checked for a error for server start
 		*/
-		args := []string{"export APPSODY_WATCH_REGEX=\"(^.*.java$)\";export APPSODY_WATCH_DIR=" + projectDir + ";export APPSODY_WATCH_INTERVAL=1;export APPSODY_MOUNTS=\"/bad:" + projectDir + "\";export APPSODY_RUN_ON_CHANGE=\"sleep 2\";export APPSODY_INSTALL=\"ls\" ; export APPSODY_RUN=\"bad\";export APPSODY_DEBUG=\"echo debug \";env |grep APPSODY;go run ../main.go -v=true"}
+		args := []string{"export APPSODY_WATCH_REGEX=\"(^.*.java$)\";export APPSODY_WATCH_DIR=" + projectDir + ";export APPSODY_WATCH_INTERVAL=1;export APPSODY_MOUNTS=\"/bad:" + projectDir + "\";export APPSODY_RUN_ON_CHANGE=\"sleep 2\";export APPSODY_PREP=\"ls\" ; export APPSODY_RUN=\"bad\";export APPSODY_DEBUG=\"echo debug \";env |grep APPSODY;go run ../main.go -v=true"}
 
 		output, err := RunBashCmdExecAndKillAndTouch(args, ".", true, projectDir)
 		log.Println("This is the output: " + output)
@@ -202,12 +202,12 @@ func TestBadOnChange(t *testing.T) {
 		APPSODY_MOUNTS
 		APPSODY_RUN_ON_CHANGE -bad value given
 		APPSODY_RUN
-		APPSODY_INSTALL
+		APPSODY_PREP
 		APPSODY_DEBUG
 		The controller is executed with verbose logging
 		The output is checked for a error for the wait for the on change command.
 		*/
-		args := []string{"export APPSODY_WATCH_REGEX=\"(^.*.java$)\";export APPSODY_WATCH_DIR=" + projectDir + ";export APPSODY_WATCH_INTERVAL=1;export APPSODY_MOUNTS=\"/bad:" + projectDir + "\";export APPSODY_RUN_ON_CHANGE=\"bad\";export APPSODY_INSTALL=\"ls\" ; export APPSODY_RUN=\"ls\";export APPSODY_DEBUG=\"echo debug \";env |grep APPSODY;go run ../main.go -v=true"}
+		args := []string{"export APPSODY_WATCH_REGEX=\"(^.*.java$)\";export APPSODY_WATCH_DIR=" + projectDir + ";export APPSODY_WATCH_INTERVAL=1;export APPSODY_MOUNTS=\"/bad:" + projectDir + "\";export APPSODY_RUN_ON_CHANGE=\"bad\";export APPSODY_PREP=\"ls\" ; export APPSODY_RUN=\"ls\";export APPSODY_DEBUG=\"echo debug \";env |grep APPSODY;go run ../main.go -v=true"}
 
 		output, err := RunBashCmdExecAndKillAndTouch(args, ".", true, projectDir)
 		log.Println("This is the output: " + output)
@@ -242,12 +242,12 @@ func TestBadWatchDir(t *testing.T) {
 		APPSODY_MOUNTS
 		APPSODY_RUN_ON_CHANGE
 		APPSODY_RUN
-		APPSODY_INSTALL
+		APPSODY_PREP
 		APPSODY_DEBUG
 		The controller is executed with verbose logging
 		The output is checked for a error because the watch directory does not exist.
 		*/
-		args := []string{"export APPSODY_WATCH_REGEX=\"(^.*.java$)\";export APPSODY_WATCH_DIR=/tmp/watchdir4;export APPSODY_WATCH_INTERVAL=1;export APPSODY_MOUNTS=\"/bad:" + projectDir + "\";export APPSODY_RUN_ON_CHANGE=\"sleep 2\";export APPSODY_INSTALL=\"ls\" ; export APPSODY_RUN=\"ls\";export APPSODY_DEBUG=\"echo debug \";env |grep APPSODY;go run ../main.go -v=true"}
+		args := []string{"export APPSODY_WATCH_REGEX=\"(^.*.java$)\";export APPSODY_WATCH_DIR=/tmp/watchdir4;export APPSODY_WATCH_INTERVAL=1;export APPSODY_MOUNTS=\"/bad:" + projectDir + "\";export APPSODY_RUN_ON_CHANGE=\"sleep 2\";export APPSODY_PREP=\"ls\" ; export APPSODY_RUN=\"ls\";export APPSODY_DEBUG=\"echo debug \";env |grep APPSODY;go run ../main.go -v=true"}
 
 		output, err := RunBashCmdExecAndKillAndTouch(args, ".", true, projectDir)
 		log.Println("This is the output: " + output)
@@ -288,7 +288,6 @@ func TestWatchActionDebug(t *testing.T) {
 		APPSODY_RUN_ON_CHANGE
 		APPSODY_DEBUG_ON_CHANGE - the test checks this value
 		APPSODY_RUN
-		APPSODY_INSTALL
 		APPSODY_DEBUG
 		The controller is executed in debug mode with verbose logging
 		The output is checked the appropriate debug and APPSODY_DEBUG_ON_CHANGE output
@@ -336,7 +335,6 @@ func TestAA(t *testing.T) {
 		APPSODY_RUN_ON_CHANGE
 		APPSODY_DEBUG_ON_CHANGE
 		APPSODY_RUN
-		APPSODY_INSTALL
 		APPSODY_DEBUG
 		The controller is executed in debug mode with verbose logging
 		The output is checked the appropriate APPSODY_TEST output
@@ -371,7 +369,7 @@ func TestTAAFail(t *testing.T) {
 	}
 	defer os.RemoveAll(projectDir)
 	// call t.Run so that we can name and report on individual tests
-	t.Run("TestWatchAction", func(t *testing.T) {
+	t.Run("TestAAFail", func(t *testing.T) {
 		/* The following environment variables are set:
 		APPSODY_TEST - a bad value is used
 		APPSODY_WATCH_REGEX - watch java files
@@ -381,7 +379,6 @@ func TestTAAFail(t *testing.T) {
 		APPSODY_RUN_ON_CHANGE
 		APPSODY_DEBUG_ON_CHANGE
 		APPSODY_RUN
-		APPSODY_INSTALL
 		APPSODY_DEBUG
 		The controller is executed in debug mode with verbose logging
 		The output is checked the appropriate output for the bad test command given for APPSODY_TEST
