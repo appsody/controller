@@ -77,11 +77,11 @@ This is a regex expression which describes which files are watched for changes. 
 
 Command which is run to do any operations needed before the APPSODY_RUN/TEST/DEBUG and APPSODY_RUN/TEST/DEBUG>_ON_CHANGE commands are run.  Note: use of APPSODY_INSTALL, which specifies the same information is deprecated. 
 
-ENV APPSODY_INSTALL="npm install --prefix user-app"
+ENV APPSODY_PREP="npm install --prefix user-app"
 
 ### APPSODY_RUN
 
-This is the command run for the server process after the APPSODY_INSTALL command, when the mode is 'run'.  
+This is the command run for the server process after the APPSODY_PREP command, when the mode is 'run'.  
 If your command involves complex environment variable expansions, it may be better to encapsulate your command into a script. 
 
 >ENV APPSODY_RUN="npm start"  
@@ -103,7 +103,7 @@ to starting the watch action specified by APPSODY_RUN_ON_CHANGE.  The values sup
 
 ### APPSODY_DEBUG
 
-This is the command for the server process run after the APPSODY_INSTALL command, when the mode is 'debug'.  
+This is the command for the server process run after the APPSODY_PREP command, when the mode is 'debug'.  
 If your command involves complex environment variable expansions, it may be better to encapsulate your command into a script. 
 
 >ENV APPSODY_DEBUG="npm run debug"
@@ -124,7 +124,7 @@ This variable isused to signal that when the mode is "debug" the controller will
 
 ### APPSODY_TEST
 
-This is the command to run the test cases run after the APPSODY_INSTALL command, when the mode is 'test'.  
+This is the command to run the test cases run after the APPSODY_PREP command, when the mode is 'test'.  
 If your command involves complex environment variable expansions, it may be better to encapsulate your command into a script. 
 
 >ENV APPSODY_TEST="npm test && npm test --prefix user-app"
