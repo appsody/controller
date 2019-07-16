@@ -69,13 +69,13 @@ This variable contains the directories to ignore any changes in. There can be mu
 >ENV APPSODY_WATCH_IGNORE_DIR=/project/user-app/node_modules
 
 ### APPSODY_WATCH_REGEX:  
-This is a regex expression which describes which files are watched for changes.  Currently negative look ahead matching (e.g. ignore patterns) is not supported.  
+This is a regex expression which describes which files are watched for changes.  Currently negative look ahead matching (e.g. ignore patterns) is not supported.  If this value is not supplied, it will default to watch for changes in .java, .go, and .js files. 
 
->ENV APPSODY_WATCH_REGEX="^.*.js$"
+>ENV APPSODY_WATCH_REGEX="(^.*.java$)|(^.*.js$)|(^.*.go$)"
 
-### APPSODY_INSTALL
+### APPSODY_PREP
 
-Command which is run to do any install needed before the APPSODY_RUN/TEST/DEBUG and APPSODY_RUN/TEST/DEBUG>_ON_CHANGE commands are run. 
+Command which is run to do any operations needed before the APPSODY_RUN/TEST/DEBUG and APPSODY_RUN/TEST/DEBUG>_ON_CHANGE commands are run.  Note: use of APPSODY_INSTALL, which specifies the same information is deprecated. 
 
 ENV APPSODY_INSTALL="npm install --prefix user-app"
 
