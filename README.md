@@ -75,9 +75,11 @@ This is a regex expression which describes which files are watched for changes. 
 
 ### APPSODY_PREP
 
-Command which is run to do any operations needed before the APPSODY_RUN/TEST/DEBUG and APPSODY_RUN/TEST/DEBUG>_ON_CHANGE commands are run.  Note: use of APPSODY_INSTALL, which specifies the same information is deprecated. 
+This is an optional command executed before the APPSODY_RUN/TEST/DEBUG and APPSODY_RUN/TEST/DEBUG_ON_CHANGE commands are run. This command should only be used to perform prerequisite checks or preparation steps prior to starting the app server. If this command fails, APPSODY_RUN/TEST/DEBUG will not be executed and the appsody container will be terminated. It is _not_ recommended to perform code compilation tasks in APPSODY_PREP because compilation errors can typically be fixed and recovered while the container is running with the APPSODY_RUN/TEST/DEBUG and ON_CHANGE commands. Unlike those commands, APPSODY_PREP will only be run once and never retried.
 
-ENV APPSODY_PREP="npm install --prefix user-app"
+__Note:__ APPSODY_INSTALL is deprecated and has been replaced with APPSODY_PREP
+
+>ENV APPSODY_PREP="npm install --prefix user-app"
 
 ### APPSODY_RUN
 
