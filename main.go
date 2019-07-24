@@ -39,10 +39,11 @@ var appsodyRUNWATCHACTION string //# command to run when files change, optional,
 var appsodyDEBUG string
 var appsodyRUN string
 var appsodyTEST string
-var appsodyINSTALL string
+var appsodyINSTALL string // Note this will be deprecated in a future release
 var appsodyMOUNTS []string
 
 var appsodyWATCHREGEX string
+var appsodyPREP string
 var appsodyWATCHINTERVAL time.Duration
 var appsodyDEBUGWATCHACTION string
 var appsodyTESTWATCHACTION string
@@ -207,8 +208,14 @@ func setupEnvironmentVars() error {
 	appsodyRUNWATCHACTION = os.Getenv("APPSODY_RUN_ON_CHANGE")
 	Debug.log("APPSODY_RUN_ON_CHANGE: " + appsodyRUNWATCHACTION)
 
-	appsodyINSTALL = os.Getenv("APPSODY_INSTALL")
+	appsodyINSTALL = os.Getenv("APPSODY_INSTALL") // Note this will be deprecated in a future release
 	Debug.log("APPSODY_INSTALL: " + appsodyINSTALL)
+
+	appsodyPREP = os.Getenv("APPSODY_PREP")
+	Debug.log("APPSODY_PREP: " + appsodyPREP)
+	if appsodyPREP == "" {
+		appsodyPREP = appsodyINSTALL
+	}
 
 	appsodyDEBUG = os.Getenv("APPSODY_DEBUG")
 	Debug.log("APPSODY_DEBUG: " + appsodyDEBUG)
@@ -327,9 +334,9 @@ func killProcess(theProcessType ProcessType) error {
 }
 
 /*
-	runInstall
+	runPrep
 */
-func runInstall(commandString string) (*exec.Cmd, error) {
+func runPrep(commandString string) (*exec.Cmd, error) {
 	var err error
 	Info.log("Running Install: " + commandString)
 	cmd := exec.Command("/bin/bash", "-c", commandString)
@@ -501,11 +508,12 @@ func runCommands(commandString string, theProcessType ProcessType, killServer bo
 	Debug.log("Mutex Locked")
 	if theProcessType == server {
 
-		if appsodyINSTALL != "" {
-			_, err = runInstall(appsodyINSTALL)
+		if appsodyPREP != "" {
+			_, err = runPrep(appsodyPREP)
 		}
 		if err != nil {
-			Warning.log("ERROR Install (APPSODY_INSTALL) received error ", err)
+			Error.log("FATAL error APPSODY_PREP command received an error.  The controller is exiting: ", err)
+			os.Exit(1)
 		}
 		// keep going
 		cmd, err = startProcess(commandString, server)
@@ -537,19 +545,33 @@ func runCommands(commandString string, theProcessType ProcessType, killServer bo
 			// do nothing we continue after kill errors
 			Warning.log("Watcher killProcess received error ", err)
 		}
-		cmd, err = startProcess(commandString, fileWatcher)
-		if err != nil {
 
-			Warning.log("ERROR start process for file watcher received error ", err)
+		commandToUse := commandString
+		processTypeToUse := fileWatcher
+
+		if !killServer {
+			// this path is only relevant for APPSODY_<RUN/DEBUG/TEST>KILL_SERVER=FALSE
+			// get the process of the current server (should not be nil ever) and send benign SIG 0 to the server proces
+			if cmps.processes[server] != nil && cmps.processes[server].Signal(syscall.Signal(0)) != nil {
+				// if there is no server process, an error is returned
+				Debug.log("The server process with pid:", cmps.processes[server].Pid, "was not found, and APPSODY_<action>_KILL is set to false. The server will be restarted.")
+				//start the server with the startCommand, not the watch action command
+				commandToUse = startCommand
+				processTypeToUse = server
+			}
+		}
+
+		cmd, err = startProcess(commandToUse, processTypeToUse)
+
+		if err != nil {
+			Warning.log("ERROR start process received error: ", err)
 		}
 		cmps.mu.Unlock()
 		mutexUnlocked = true
 		Debug.log("mutex unlocked")
-		err = waitProcess(cmd, theProcessType)
+		err = waitProcess(cmd, processTypeToUse)
 		if err != nil {
-
 			// do nothing as the kill causees and error condition
-
 			Info.log("Wait received error ", err)
 		}
 
@@ -563,6 +585,9 @@ func runCommands(commandString string, theProcessType ProcessType, killServer bo
 	Debug.log("runCommands EXIT")
 
 }
+
+var startCommand string
+
 func main() {
 
 	var err error
@@ -571,7 +596,7 @@ func main() {
 	testMode := false
 	var dirs []string
 	var stopWatchServerOnChange bool
-	startCommand := ""
+
 	errorMessage := ""
 	var errWorkDir error
 

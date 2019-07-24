@@ -69,19 +69,21 @@ This variable contains the directories to ignore any changes in. There can be mu
 >ENV APPSODY_WATCH_IGNORE_DIR=/project/user-app/node_modules
 
 ### APPSODY_WATCH_REGEX:  
-This is a regex expression which describes which files are watched for changes.  Currently negative look ahead matching (e.g. ignore patterns) is not supported.  
+This is a regex expression which describes which files are watched for changes.  Currently negative look ahead matching (e.g. ignore patterns) is not supported.  If this value is not supplied, it will default to watch for changes in .java, .go, and .js files. 
 
->ENV APPSODY_WATCH_REGEX="^.*.js$"
+>ENV APPSODY_WATCH_REGEX="(^.*.java$)|(^.*.js$)|(^.*.go$)"
 
-### APPSODY_INSTALL
+### APPSODY_PREP
 
-Command which is run to do any install needed before the APPSODY_RUN/TEST/DEBUG and APPSODY_RUN/TEST/DEBUG>_ON_CHANGE commands are run. 
+This is an optional command executed before the APPSODY_RUN/TEST/DEBUG and APPSODY_RUN/TEST/DEBUG_ON_CHANGE commands are run. This command should only be used to perform prerequisite checks or preparation steps prior to starting the app server. If this command fails, APPSODY_RUN/TEST/DEBUG will not be executed and the appsody container will be terminated. It is _not_ recommended to perform code compilation tasks in APPSODY_PREP because compilation errors can typically be fixed and recovered while the container is running with the APPSODY_RUN/TEST/DEBUG and ON_CHANGE commands. Unlike those commands, APPSODY_PREP will only be run once and never retried.
 
-ENV APPSODY_INSTALL="npm install --prefix user-app"
+__Note:__ APPSODY_INSTALL is deprecated and has been replaced with APPSODY_PREP
+
+>ENV APPSODY_PREP="npm install --prefix user-app"
 
 ### APPSODY_RUN
 
-This is the command run for the server process after the APPSODY_INSTALL command, when the mode is 'run'.  
+This is the command run for the server process after the APPSODY_PREP command, when the mode is 'run'.  
 If your command involves complex environment variable expansions, it may be better to encapsulate your command into a script. 
 
 >ENV APPSODY_RUN="npm start"  
@@ -103,7 +105,7 @@ to starting the watch action specified by APPSODY_RUN_ON_CHANGE.  The values sup
 
 ### APPSODY_DEBUG
 
-This is the command for the server process run after the APPSODY_INSTALL command, when the mode is 'debug'.  
+This is the command for the server process run after the APPSODY_PREP command, when the mode is 'debug'.  
 If your command involves complex environment variable expansions, it may be better to encapsulate your command into a script. 
 
 >ENV APPSODY_DEBUG="npm run debug"
@@ -124,7 +126,7 @@ This variable isused to signal that when the mode is "debug" the controller will
 
 ### APPSODY_TEST
 
-This is the command to run the test cases run after the APPSODY_INSTALL command, when the mode is 'test'.  
+This is the command to run the test cases run after the APPSODY_PREP command, when the mode is 'test'.  
 If your command involves complex environment variable expansions, it may be better to encapsulate your command into a script. 
 
 >ENV APPSODY_TEST="npm test && npm test --prefix user-app"
