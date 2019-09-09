@@ -179,19 +179,12 @@ func setupEnvironmentVars() error {
 	var err error
 
 	tmpWATCHIGNOREDIR := os.Getenv("APPSODY_WATCH_IGNORE_DIR")
-
 	appsodyRUNKILL = computeSigInt(os.Getenv("APPSODY_RUN_KILL"))
-
 	appsodyDEBUGKILL = computeSigInt(os.Getenv("APPSODY_DEBUG_KILL"))
-
 	appsodyTESTKILL = computeSigInt(os.Getenv("APPSODY_TEST_KILL"))
-
 	appsodyDEBUGWATCHACTION = os.Getenv("APPSODY_DEBUG_ON_CHANGE")
-
 	appsodyTESTWATCHACTION = os.Getenv("APPSODY_TEST_ON_CHANGE")
-
 	appsodyTEST = os.Getenv("APPSODY_TEST")
-
 	appsodyWATCHREGEX = os.Getenv("APPSODY_WATCH_REGEX")
 
 	// if there is no watch expression default to watching for .go,.java,.js files
@@ -200,13 +193,9 @@ func setupEnvironmentVars() error {
 	}
 
 	appsodyRUN = os.Getenv("APPSODY_RUN")
-
 	tmpWatchDirs := os.Getenv("APPSODY_WATCH_DIR")
-
 	appsodyRUNWATCHACTION = os.Getenv("APPSODY_RUN_ON_CHANGE")
-
 	appsodyINSTALL = os.Getenv("APPSODY_INSTALL") // Note this will be deprecated in a future release
-
 	appsodyPREP = os.Getenv("APPSODY_PREP")
 
 	if appsodyPREP == "" {
