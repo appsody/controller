@@ -63,7 +63,7 @@ const (
 )
 
 func processTypeToString(theProcessType ProcessType) string {
-	if theProcessType == 1 {
+	if theProcessType == 0 {
 		return "APPSODY_RUN/DEBUG/TEST"
 	}
 	return "APPSODY_RUN/DEBUG/TEST_ON_CHANGE"
@@ -293,10 +293,11 @@ func setupEnvironmentVars() error {
 		}
 
 	}
-	ControllerDebug.log("Appsody Controller envirnonment variables: ", "APPSODY_WATCH_IGNORE_DIR: ", tmpWATCHIGNOREDIR, " APPSODY_RUN_KILL: ", appsodyRUNKILL, " APPSODY_DEBUG_KILL: ", appsodyRUNKILL,
-		" APPSODY_DEBUG_KILL ", appsodyRUNKILL, " APPSODY_DEBUG_ON_CHANGE: ", appsodyDEBUGWATCHACTION, "APPSODY_TEST_ON_CHANGE: ", appsodyTESTWATCHACTION,
+
+	ControllerDebug.log("Appsody Controller envirnonment variables: ", "APPSODY_WATCH_IGNORE_DIR: ", tmpWATCHIGNOREDIR, " APPSODY_RUN_KILL: ", appsodyRUNKILL, " APPSODY_DEBUG_KILL: ", appsodyDEBUGKILL,
+		" APPSODY_TEST_KILL ", appsodyTESTKILL, " APPSODY_DEBUG_ON_CHANGE: ", appsodyDEBUGWATCHACTION, " APPSODY_TEST_ON_CHANGE: ", appsodyTESTWATCHACTION,
 		" APPSODY_TEST: ", appsodyTEST, " APPSODY_WATCH_REGEX: ", appsodyWATCHREGEX, " APPSODY_RUN: ", appsodyRUN,
-		" APPSODY_WATCH_DIR: ", tmpWatchDirs, "APPSODY_RUN_ON_CHANGE: ", appsodyRUNWATCHACTION, "APPSODY_INSTALL: ", appsodyINSTALL,
+		" APPSODY_WATCH_DIR: ", tmpWatchDirs, " APPSODY_RUN_ON_CHANGE: ", appsodyRUNWATCHACTION, " APPSODY_INSTALL: ", appsodyINSTALL,
 		" APPSODY_PREP: ", appsodyPREP, " APPSODY_DEBUG: "+appsodyDEBUG, " APPSODY_MOUNTS: ", tmpMountDirs, " APPSODY_WATCH_INTERVAL input: ", tempWatchInterval+" seconds",
 		" APPSODY_WATCH_INTERVAL set to: ", appsodyWATCHINTERVAL, " seconds")
 
@@ -375,12 +376,6 @@ func startProcess(commandString string, theProcessType ProcessType) (*exec.Cmd, 
 func waitProcess(cmd *exec.Cmd, theProcessType ProcessType) error {
 
 	err := cmd.Wait()
-	if err != nil {
-
-		// do nothing as the kill causees and error condition
-		ControllerInfo.log("Wait on process type: ", processTypeToString(theProcessType), " received error:", err)
-
-	}
 
 	return err
 }
@@ -403,7 +398,7 @@ func runWatcher(fileChangeCommand string, dirs []string, killServer bool) error 
 	errorMessage := ""
 	var err error
 
-	ControllerDebug.log("Running ON_CHANGE command: " + fileChangeCommand)
+	ControllerDebug.log("Starting watcher for ON_CHANGE command: " + fileChangeCommand)
 	// Start the Watcher
 	// compile the regex prior to running watcher because panic leaves child processes if it occurs
 
