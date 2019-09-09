@@ -295,7 +295,7 @@ func setupEnvironmentVars() error {
 	}
 
 	ControllerDebug.log("Appsody Controller envirnonment variables: ", "APPSODY_WATCH_IGNORE_DIR: ", tmpWATCHIGNOREDIR, " APPSODY_RUN_KILL: ", appsodyRUNKILL, " APPSODY_DEBUG_KILL: ", appsodyDEBUGKILL,
-		" APPSODY_TEST_KILL ", appsodyTESTKILL, " APPSODY_DEBUG_ON_CHANGE: ", appsodyDEBUGWATCHACTION, " APPSODY_TEST_ON_CHANGE: ", appsodyTESTWATCHACTION,
+		" APPSODY_TEST_KILL: ", appsodyTESTKILL, " APPSODY_DEBUG_ON_CHANGE: ", appsodyDEBUGWATCHACTION, " APPSODY_TEST_ON_CHANGE: ", appsodyTESTWATCHACTION,
 		" APPSODY_TEST: ", appsodyTEST, " APPSODY_WATCH_REGEX: ", appsodyWATCHREGEX, " APPSODY_RUN: ", appsodyRUN,
 		" APPSODY_WATCH_DIR: ", tmpWatchDirs, " APPSODY_RUN_ON_CHANGE: ", appsodyRUNWATCHACTION, " APPSODY_INSTALL: ", appsodyINSTALL,
 		" APPSODY_PREP: ", appsodyPREP, " APPSODY_DEBUG: "+appsodyDEBUG, " APPSODY_MOUNTS: ", tmpMountDirs, " APPSODY_WATCH_INTERVAL input: ", tempWatchInterval+" seconds",
