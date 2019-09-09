@@ -213,7 +213,7 @@ func TestBadOnChange(t *testing.T) {
 
 		log.Printf("error is:  %v\n", err)
 
-		if strings.Contains(output, "Wait Received error starting process of type APPSODY_RUN/DEBUG/TEST while running command: bad error") {
+		if strings.Contains(output, "Wait Received error starting process of type APPSODY_RUN/DEBUG/TEST_ON_CHANGE while running command: bad error") {
 			log.Println("pass")
 		} else {
 			t.Fail()
