@@ -401,7 +401,7 @@ func runWatcher(fileChangeCommand string, dirs []string, killServer bool) error 
 	errorMessage := ""
 	var err error
 
-	ControllerDebug.log("Starting watcher: " + fileChangeCommand)
+	ControllerDebug.log("Starting watcher")
 	// Start the Watcher
 	// compile the regex prior to running watcher because panic leaves child processes if it occurs
 
