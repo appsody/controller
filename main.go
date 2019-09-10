@@ -612,9 +612,11 @@ func main() {
 
 	}
 	_ = klogFlags.Set("skip_headers", "true")
+  
 	if disableWatcher {
 		ControllerInfo.log("File watching has been turned off at the request of the CLI.")
 	}
+
 	ControllerDebug.log("Running Appsody Controller version " + VERSION)
 
 	if strings.Compare(*mode, "test") == 0 {
@@ -662,6 +664,7 @@ func main() {
 	}
 	ControllerDebug.log("File change command: " + fileChangeCommand)
 
+
 	if fileChangeCommand == "" || disableWatcher {
 		ControllerDebug.log("The fileChangeCommand environment variable APPSODY_RUN/DEBUG/TEST_ON_CHANGE is unspecified.")
 		ControllerDebug.log("Running APPSODY_RUN,APPSODY_DEBUG or APPSODY_TEST sync: " + startCommand)
@@ -694,6 +697,7 @@ func main() {
 
 		err = runWatcher(fileChangeCommand, dirs, stopWatchServerOnChange)
 	} else {
+
 		ControllerInfo.log("The file watcher is not running because no APPSODY_RUN/TEST/DEBUG_ON_CHANGE action was specified or it has been disabled using the --no-watcher flag.")
 	}
 	if err != nil {
