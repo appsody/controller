@@ -665,7 +665,7 @@ func main() {
 	ControllerDebug.log("File change command: " + fileChangeCommand)
 
 	if fileChangeCommand == "" || disableWatcher {
-		ControllerDebug.log("The fileChangeCommand environment variable APPSODY_RUN/DEBUG/TEST_ON_CHANGE is unspecified.")
+		ControllerDebug.log("The fileChangeCommand environment variable APPSODY_RUN/DEBUG/TEST_ON_CHANGE is unspecified or file watching was disabled by the CLI.")
 		ControllerDebug.log("Running APPSODY_RUN,APPSODY_DEBUG or APPSODY_TEST sync: " + startCommand)
 		runCommands(startCommand, server, false)
 	} else {
