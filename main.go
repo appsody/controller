@@ -62,6 +62,13 @@ const (
 	fileWatcher ProcessType = 1
 )
 
+func processTypeToString(theProcessType ProcessType) string {
+	if theProcessType == 0 {
+		return "APPSODY_RUN/DEBUG/TEST"
+	}
+	return "APPSODY_RUN/DEBUG/TEST_ON_CHANGE"
+}
+
 type controllerManagedProcesses struct {
 	pids      map[ProcessType]int
 	processes map[ProcessType]*os.Process
@@ -122,7 +129,7 @@ func (l appsodylogger) log(args ...interface{}) {
 		args = append(dbg[0:], args...)
 	}
 
-	if l == "Debug" {
+	if l == "ControllerDebug" {
 		if klog.V(2) {
 
 			// we don't want to pring out debug unless debug level is set
@@ -137,16 +144,16 @@ func (l appsodylogger) log(args ...interface{}) {
 
 var (
 
-	// Info - informational logging
-	Info appsodylogger = "Info"
-	// Warning - warning logging
-	Warning appsodylogger = "Warning"
-	// Error - error logging
-	Error appsodylogger = "Error"
-	// Fatal - fatal errors
-	Fatal appsodylogger = "Fatal"
-	// Debug - debug
-	Debug appsodylogger = "Debug"
+	// ControllerInfo - informational logging
+	ControllerInfo appsodylogger = "Info"
+	// ControllerWarning - warning logging
+	ControllerWarning appsodylogger = "Warning"
+	// ControllerError - error logging
+	ControllerError appsodylogger = "Error"
+	// ControllerFatal - fatal errors
+	ControllerFatal appsodylogger = "Fatal"
+	// ControllerDebug - debug
+	ControllerDebug appsodylogger = "ControllerDebug"
 )
 
 type mountError struct {
@@ -169,30 +176,16 @@ func computeSigInt(tempSigInt string) bool {
 }
 func setupEnvironmentVars() error {
 
-	Debug.log("setupEnvironmentVars ENTRY")
 	var err error
 
 	tmpWATCHIGNOREDIR := os.Getenv("APPSODY_WATCH_IGNORE_DIR")
-	Debug.log("APPSODY_WATCH_IGNORE_DIR ", tmpWATCHIGNOREDIR)
-
 	appsodyRUNKILL = computeSigInt(os.Getenv("APPSODY_RUN_KILL"))
-	Debug.log("APPSODY_RUN_KILL ", appsodyRUNKILL)
 	appsodyDEBUGKILL = computeSigInt(os.Getenv("APPSODY_DEBUG_KILL"))
-	Debug.log("APPSODY_DEBUG_KILL ", appsodyRUNKILL)
 	appsodyTESTKILL = computeSigInt(os.Getenv("APPSODY_TEST_KILL"))
-	Debug.log("APPSODY_DEBUG_KILL ", appsodyRUNKILL)
-
 	appsodyDEBUGWATCHACTION = os.Getenv("APPSODY_DEBUG_ON_CHANGE")
-	Debug.log("APPSODY_DEBUG_ON_CHANGE: " + appsodyDEBUGWATCHACTION)
-
 	appsodyTESTWATCHACTION = os.Getenv("APPSODY_TEST_ON_CHANGE")
-	Debug.log("APPSODY_TEST_ON_CHANGE: " + appsodyTESTWATCHACTION)
-
 	appsodyTEST = os.Getenv("APPSODY_TEST")
-	Debug.log("APPSODY_TEST: " + appsodyTEST)
-
 	appsodyWATCHREGEX = os.Getenv("APPSODY_WATCH_REGEX")
-	Debug.log("APPSODY_WATCH_REGEX: " + appsodyWATCHREGEX)
 
 	// if there is no watch expression default to watching for .go,.java,.js files
 	if appsodyWATCHREGEX == "" {
@@ -200,31 +193,21 @@ func setupEnvironmentVars() error {
 	}
 
 	appsodyRUN = os.Getenv("APPSODY_RUN")
-	Debug.log("APPSODY_RUN: " + appsodyRUN)
-
 	tmpWatchDirs := os.Getenv("APPSODY_WATCH_DIR")
-	Debug.log("APPSODY_WATCH_DIR: " + tmpWatchDirs)
-
 	appsodyRUNWATCHACTION = os.Getenv("APPSODY_RUN_ON_CHANGE")
-	Debug.log("APPSODY_RUN_ON_CHANGE: " + appsodyRUNWATCHACTION)
-
 	appsodyINSTALL = os.Getenv("APPSODY_INSTALL") // Note this will be deprecated in a future release
-	Debug.log("APPSODY_INSTALL: " + appsodyINSTALL)
-
 	appsodyPREP = os.Getenv("APPSODY_PREP")
-	Debug.log("APPSODY_PREP: " + appsodyPREP)
+
 	if appsodyPREP == "" {
 		appsodyPREP = appsodyINSTALL
 	}
 
 	appsodyDEBUG = os.Getenv("APPSODY_DEBUG")
-	Debug.log("APPSODY_DEBUG: " + appsodyDEBUG)
 
 	tmpMountDirs := os.Getenv("APPSODY_MOUNTS")
-	Debug.log("APPSODY_MOUNTS: " + tmpMountDirs)
 
 	tempWatchInterval := os.Getenv("APPSODY_WATCH_INTERVAL")
-	Debug.log("APPSODY_WATCH_INTERVAL: " + tempWatchInterval + " seconds")
+
 	var value int
 	var atoiErr error
 	if tempWatchInterval != "" {
@@ -233,7 +216,7 @@ func setupEnvironmentVars() error {
 
 		if atoiErr != nil {
 
-			Warning.log("Invalid watch interval, setting to default 2000: " + tempWatchInterval)
+			ControllerWarning.log("Invalid watch interval, setting to default 2000: " + tempWatchInterval)
 
 			value = 2
 		}
@@ -245,10 +228,9 @@ func setupEnvironmentVars() error {
 
 	appsodyWATCHINTERVAL = time.Duration(int64(value) * int64(time.Second))
 
-	Debug.log("appsodyWATCHINTERVAL set to: ", appsodyWATCHINTERVAL)
 	fileWatchingOff := false
 	if appsodyRUNWATCHACTION == "" && appsodyDEBUGWATCHACTION == "" && appsodyTESTWATCHACTION == "" {
-		Debug.log("File watching is off.")
+		ControllerDebug.log("File watching is not enabled.")
 		fileWatchingOff = true
 	}
 
@@ -301,7 +283,26 @@ func setupEnvironmentVars() error {
 
 	}
 
-	Debug.log("setupEnvironmentVars EXIT")
+	environmentVars := make(map[string]interface{})
+
+	environmentVars["APPSODY_WATCH_IGNORE_DIR"] = tmpWATCHIGNOREDIR
+	environmentVars["APPSODY_DEBUG"] = appsodyDEBUG
+	environmentVars["APPSODY_RUN"] = appsodyRUN
+	environmentVars["APPSODY_TEST"] = appsodyTEST
+
+	environmentVars["APPSODY_RUN_KILL"] = appsodyRUNKILL
+	environmentVars["APPSODY_DEBUG_KILL"] = appsodyDEBUGKILL
+	environmentVars["APPSODY_TEST_KILL"] = appsodyTESTKILL
+	environmentVars["APPSODY_RUN_ON_CHANGE"] = appsodyRUNWATCHACTION
+	environmentVars["APPSODY_DEBUG_ON_CHANGE"] = appsodyDEBUGWATCHACTION
+	environmentVars["APPSODY_TEST_ON_CHANGE"] = appsodyTESTWATCHACTION
+	environmentVars["APPSODY_WATCH_DIR"] = tmpWatchDirs
+	environmentVars["APPSODY_MOUNTS"] = tmpMountDirs
+	environmentVars["APPSODY_INSTALL"] = appsodyINSTALL
+	environmentVars["APPSODY_PREP"] = appsodyPREP
+	environmentVars["APPSODY_WATCH_INTERVAL"] = appsodyWATCHINTERVAL
+	environmentVars["APPSODY_WATCH_REGEX"] = appsodyWATCHREGEX
+	ControllerDebug.log("Appsody Controller environment variables: ", environmentVars)
 
 	return err
 }
@@ -309,24 +310,23 @@ func setupEnvironmentVars() error {
 func killProcess(theProcessType ProcessType) error {
 	var processPid int
 	var err error
-	Debug.log("killProcess Entry")
 	if theProcessType == server {
 		processPid = cmps.pids[server]
 	} else {
 		processPid = cmps.pids[theProcessType]
 	}
-	Debug.log("Process pid is: ", processPid)
+	ControllerDebug.log("Attempting to kill pid: ", processPid)
 
 	if processPid != 0 {
 
-		Debug.log("Killing pid:  ", processPid)
+		ControllerDebug.log("Killing pid:  ", processPid)
 		err = syscall.Kill(-processPid, syscall.SIGINT)
 
 		cmps.processes[theProcessType] = nil
 		cmps.pids[theProcessType] = 0
 		if err != nil {
 
-			Error.log("Killing process returned an error SIGINT received error ", err)
+			ControllerError.log("Killing process ", processPid, " returned an error SIGINT received error ", err)
 
 		}
 	}
@@ -338,17 +338,16 @@ func killProcess(theProcessType ProcessType) error {
 */
 func runPrep(commandString string) (*exec.Cmd, error) {
 	var err error
-	Info.log("Running Install: " + commandString)
 	cmd := exec.Command("/bin/bash", "-c", commandString)
-	Debug.log("Set workdir:  " + workDir)
+	ControllerDebug.log("Set workdir:  " + workDir)
 	cmd.Dir = workDir
 
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	ControllerInfo.log("Running APPSODY_PREP command: " + commandString)
 	err = cmd.Run()
-	Debug.log("Install complete")
 
 	return cmd, err
 }
@@ -358,36 +357,29 @@ func runPrep(commandString string) (*exec.Cmd, error) {
 */
 func startProcess(commandString string, theProcessType ProcessType) (*exec.Cmd, error) {
 	var err error
-	Info.log("Running: " + commandString)
 	cmd := exec.Command("/bin/bash", "-c", commandString)
-	Debug.log("Set workdir:  " + workDir)
+	ControllerDebug.log("Set workdir:  " + workDir)
 	cmd.Dir = workDir
 
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	ControllerInfo.log("Running command:  " + commandString)
 	err = cmd.Start()
 
 	cmps.processes[theProcessType] = cmd.Process
 
 	cmps.pids[theProcessType] = cmd.Process.Pid
-	Debug.log("New process created with pid ", strconv.Itoa(cmd.Process.Pid))
+	ControllerDebug.log("New process created with pid ", strconv.Itoa(cmd.Process.Pid))
 
 	return cmd, err
 }
 
 func waitProcess(cmd *exec.Cmd, theProcessType ProcessType) error {
-	Debug.log("waitProcess ENTRY")
+
 	err := cmd.Wait()
-	if err != nil {
 
-		// do nothing as the kill causees and error condition
-		Info.log("Wait received error:", err)
-
-	}
-
-	Debug.log("waitProces EXIT")
 	return err
 }
 
@@ -409,7 +401,7 @@ func runWatcher(fileChangeCommand string, dirs []string, killServer bool) error 
 	errorMessage := ""
 	var err error
 
-	Debug.log("Run watcher ENTRY: " + fileChangeCommand)
+	ControllerDebug.log("Starting watcher")
 	// Start the Watcher
 	// compile the regex prior to running watcher because panic leaves child processes if it occurs
 
@@ -422,14 +414,14 @@ func runWatcher(fileChangeCommand string, dirs []string, killServer bool) error 
 		_, err = os.Stat(currentDir)
 		if err != nil {
 
-			errorMessage = "Watched directory does not exist: " + currentDir
-			Warning.log(errorMessage, err)
+			errorMessage = "The directory specified for file watching does not exist: " + currentDir
+			ControllerWarning.log(errorMessage, err)
 
 		}
 		if err = w.AddRecursive(currentDir); err != nil {
 
-			errorMessage = "Failed to add directory to recursive watch list: " + currentDir
-			Warning.log(errorMessage, err)
+			errorMessage = "Failed to add directory to recursive file watching list: " + currentDir
+			ControllerWarning.log(errorMessage, err)
 
 		}
 
@@ -447,18 +439,17 @@ func runWatcher(fileChangeCommand string, dirs []string, killServer bool) error 
 		for {
 			select {
 			case event := <-w.Event:
-				Debug.log("Full path is:  " + event.Path)
+				ControllerDebug.log("File watch event detected for:  " + event.Path)
 				if unwatchDir(event.Path) {
-					Debug.log("Path is not to be watched")
+					ControllerDebug.log("The path ", event.Path, " is not to be watched")
 				} else {
-					Debug.log("Matching for:  " + event.Name())
+					ControllerDebug.log("Determining if file or directory matches REGEX for:  " + event.Name())
 					if r.MatchString(event.Name()) {
 
-						Debug.log("About to restart watcher")
+						ControllerDebug.log("About to perform the ON_CHANGE action.")
 
 						// Restart the watcher as a thread so we can do a wait to avoid zombie in ps -ef
 						if fileChangeCommand != "" {
-							Debug.log("kill server is: ", killServer)
 							go runCommands(fileChangeCommand, fileWatcher, killServer)
 						}
 
@@ -466,26 +457,25 @@ func runWatcher(fileChangeCommand string, dirs []string, killServer bool) error 
 				}
 
 			case err := <-w.Error:
-				Warning.log("An error occured in the watcher ", err)
+				ControllerWarning.log("An error occured in the file watcher ", err)
 
 			case <-w.Closed:
-				Debug.log("Watcher is now closed")
+				ControllerDebug.log("The file watcher is now closed")
 				return
 			}
 		}
 	}()
 
 	// Start the watching process - it'll check for changes every "n" ms.
-	Debug.log("Watch interval is: ", appsodyWATCHINTERVAL)
+	ControllerDebug.log("The watch interval is set to: ", appsodyWATCHINTERVAL, " seconds.")
 	if err = w.Start(appsodyWATCHINTERVAL); err != nil {
 		errorMessage = "Could not start the watcher "
-		Error.log(errorMessage+" ", err)
+		ControllerError.log(errorMessage+" ", err)
 	}
 	defer w.Close()
 	// Close the watcher at function end
 	//defer w.Close()
 
-	Debug.log("Run watcher EXIT: ")
 	return err
 }
 
@@ -500,50 +490,54 @@ func runCommands(commandString string, theProcessType ProcessType, killServer bo
 	var mutexUnlocked bool
 
 	// Start a new watch action
-	Debug.log("ENTRY Running command:  " + commandString)
+	ControllerDebug.log("Running command:  "+commandString, " for process type ", processTypeToString(theProcessType))
 	cmps := appsodyControllerManagedProcesses()
 
 	// lock the mutex which protects the Process and the Pid String
 	cmps.mu.Lock()
-	Debug.log("Mutex Locked")
+
 	if theProcessType == server {
 
 		if appsodyPREP != "" {
+			ControllerDebug.log("Running APPSODY_PREP command: ", appsodyPREP)
+
 			_, err = runPrep(appsodyPREP)
 		}
 		if err != nil {
-			Error.log("FATAL error APPSODY_PREP command received an error.  The controller is exiting: ", err)
+			ControllerError.log("FATAL error APPSODY_PREP command received an error.  The controller is exiting: ", err)
 			os.Exit(1)
 		}
 		// keep going
 		cmd, err = startProcess(commandString, server)
-		Debug.log("Started Server process")
+		ControllerDebug.log("Started RUN/DEBUG/TEST process")
 		if err != nil {
-			Warning.log("ERROR start server (APPSODY_RUN) received error ", err)
+			ControllerWarning.log("ERROR start server (APPSODY_RUN/DEBUG/TEST) received error ", err)
 		}
 		cmps.mu.Unlock()
 		mutexUnlocked = true
-		Debug.log("mutex unlocked")
+
 		err = waitProcess(cmd, theProcessType)
 
 		if err != nil {
-			Info.log("Wait received error on server start ", err)
+			ControllerInfo.log("Wait received error on APPSODY_RUN/DEBUG/TEST ", err)
 		}
 	} else {
-		Debug.log("Inside watcher path")
+		ControllerDebug.log("Inside the ON_CHANGE path")
 		// This is a watcher
 		if killServer {
-			Debug.log("killing server")
+			ControllerDebug.log("APPSODY_RUN/DEBUG/TEST_ON_KILL is true, attempting to kill the corresponding process.")
 			err = killProcess(server)
 			if err != nil {
 				// do nothing we continue after kill errors
-				Warning.log("killProcess received error ", err)
+				ControllerWarning.log("The attempt to kill the process received an error ", err)
 			}
 		}
+		ControllerDebug.log("Killing the APPSODY_RUN/DEBUG/TEST_ON_CHANGE process.")
+
 		err = killProcess(fileWatcher)
 		if err != nil {
 			// do nothing we continue after kill errors
-			Warning.log("Watcher killProcess received error ", err)
+			ControllerWarning.log("Killing the the APPSODY_RUN/DEBUG/TEST_ON_CHANGE process received error ", err)
 		}
 
 		commandToUse := commandString
@@ -554,25 +548,28 @@ func runCommands(commandString string, theProcessType ProcessType, killServer bo
 			// get the process of the current server (should not be nil ever) and send benign SIG 0 to the server proces
 			if cmps.processes[server] != nil && cmps.processes[server].Signal(syscall.Signal(0)) != nil {
 				// if there is no server process, an error is returned
-				Debug.log("The server process with pid:", cmps.processes[server].Pid, "was not found, and APPSODY_<action>_KILL is set to false. The server will be restarted.")
+				ControllerDebug.log("The server process with pid:", cmps.processes[server].Pid, "was not found, and APPSODY_<action>_KILL is set to false. The server will be restarted.")
 				//start the server with the startCommand, not the watch action command
 				commandToUse = startCommand
 				processTypeToUse = server
 			}
 		}
+		ControllerDebug.log("Starting process of type ", processTypeToString(processTypeToUse), " running command: ", commandToUse)
 
 		cmd, err = startProcess(commandToUse, processTypeToUse)
 
 		if err != nil {
-			Warning.log("ERROR start process received error: ", err)
+			ControllerWarning.log("Received and error starting process of type ", processTypeToString(processTypeToUse), " running command: ", commandToUse, " error received was: ", err)
+
 		}
 		cmps.mu.Unlock()
 		mutexUnlocked = true
-		Debug.log("mutex unlocked")
+
 		err = waitProcess(cmd, processTypeToUse)
 		if err != nil {
 			// do nothing as the kill causees and error condition
-			Info.log("Wait received error ", err)
+			ControllerWarning.log("Wait Received error starting process of type ", processTypeToString(processTypeToUse), " while running command: ", commandToUse, " error received was: ", err)
+
 		}
 
 	}
@@ -581,8 +578,6 @@ func runCommands(commandString string, theProcessType ProcessType, killServer bo
 
 		cmps.mu.Unlock()
 	}
-
-	Debug.log("runCommands EXIT")
 
 }
 
@@ -609,15 +604,12 @@ func main() {
 
 	if vmode || verbose {
 		// set debug mode
-
 		_ = klogFlags.Set("v", "4")
-		_ = klogFlags.Set("skip_headers", "false")
 
-	} else {
-		_ = klogFlags.Set("skip_headers", "true")
 	}
+	_ = klogFlags.Set("skip_headers", "true")
 
-	Debug.log("Controller main ENTRY " + VERSION)
+	ControllerDebug.log("Running Appsody Controller version " + VERSION)
 
 	if strings.Compare(*mode, "test") == 0 {
 		testMode = true
@@ -631,14 +623,14 @@ func main() {
 
 	if errWorkDir != nil {
 
-		Fatal.log("Could not find the working dir ", errWorkDir)
+		ControllerFatal.log("Could not find the working dir ", errWorkDir)
 		os.Exit(1)
 	}
 	// Obtain the environment variables
 	err = setupEnvironmentVars()
 	if err != nil {
-		errorMessage = "Warning: setup did not find all environment variables "
-		Fatal.log(errorMessage, err)
+		errorMessage = "Fatal: Appsody Controller setup did not find all environment variables "
+		ControllerFatal.log(errorMessage, err)
 		os.Exit(1)
 	}
 
@@ -651,9 +643,9 @@ func main() {
 		startCommand = appsodyRUN
 	}
 	if startCommand == "" {
-		Warning.log("Warning: startCommand (environment variable APPSODY_DEBUG,APPSODY_TEST or APPSODY_RUN) is unspecified")
+		ControllerWarning.log("Warning: the APPSODY_DEBUG,APPSODY_TEST or APPSODY_RUN command is unspecified")
 	}
-	Debug.log("startCommand: " + startCommand)
+	ControllerDebug.log("APPSODY_DEBUG,APPSODY_TEST or APPSODY_RUN command : " + startCommand)
 	if debugMode {
 		//note this could be ""
 		fileChangeCommand = appsodyDEBUGWATCHACTION
@@ -662,14 +654,15 @@ func main() {
 	} else {
 		fileChangeCommand = appsodyRUNWATCHACTION
 	}
-	Debug.log("File change command: " + fileChangeCommand)
+	ControllerDebug.log("File change command: " + fileChangeCommand)
 
 	if fileChangeCommand == "" {
-		Debug.log("fileChangeCommand environment variable APPSODY_WATCH_ACTION) is unspecified.")
-		Debug.log("Running sync: " + startCommand)
+		ControllerDebug.log("The fileChangeCommand environment variable APPSODY_RUN/DEBUG/TEST_ON_CHANGE is unspecified.")
+		ControllerDebug.log("Running APPSODY_RUN,APPSODY_DEBUG or APPSODY_TEST sync: " + startCommand)
 		runCommands(startCommand, server, false)
 	} else {
-		Debug.log("Running " + startCommand)
+		ControllerDebug.log("Running APPSODY_RUN,APPSODY_DEBUG or APPSODY_TEST async: " + startCommand)
+
 		go runCommands(startCommand, server, false)
 	}
 
@@ -695,13 +688,12 @@ func main() {
 
 		err = runWatcher(fileChangeCommand, dirs, stopWatchServerOnChange)
 	} else {
-		Info.log("Watcher is not running.")
+		ControllerInfo.log("The file watcher is not running because no APPSODY_RUN/TEST/DEBUG_ON_CHANGE action was specified.")
 	}
 	if err != nil {
-		errorMessage = "Error running watcher "
-		Fatal.log(errorMessage, err)
+		errorMessage = "Error running the file watcher: "
+		ControllerFatal.log(errorMessage, err)
 		os.Exit(1)
 	}
 
-	Debug.log("Controller main EXIT")
 }

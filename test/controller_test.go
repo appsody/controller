@@ -92,8 +92,7 @@ func TestWatchAction(t *testing.T) {
 		log.Printf("error is:  %v\n", err)
 		// the count should only be one, it will not match on the .go file or the .bad file touched by the util
 		// sleep 2 is for watch action, sleep 10 is for RUN action
-
-		if strings.Contains(output, "appsodyWATCHINTERVAL set to: 1s") && strings.Contains(output, "Running: sleep 10") && strings.Count(output, "Running: sleep 2") == 1 {
+		if strings.Contains(output, "The watch interval is set to: 1s seconds") && strings.Contains(output, "Running command:  sleep 10") && strings.Count(output, "Running command:  sleep 2") == 2 {
 			log.Println("pass")
 		} else {
 			t.Fail()
@@ -173,7 +172,7 @@ func TestBadAPPSODYRun(t *testing.T) {
 
 		log.Printf("error is:  %v\n", err)
 
-		if strings.Contains(output, "Wait received error on server start exit status") {
+		if strings.Contains(output, "Wait received error on APPSODY_RUN/DEBUG/TEST exit status") {
 
 			log.Println("pass")
 		} else {
@@ -214,8 +213,7 @@ func TestBadOnChange(t *testing.T) {
 
 		log.Printf("error is:  %v\n", err)
 
-		if strings.Contains(output, "Wait received error:exit status") {
-
+		if strings.Contains(output, "Wait Received error starting process of type APPSODY_RUN/DEBUG/TEST_ON_CHANGE while running command: bad error") {
 			log.Println("pass")
 		} else {
 			t.Fail()
@@ -256,7 +254,7 @@ func TestBadWatchDir(t *testing.T) {
 		// the count should only be one, it will not match on the .go file or the .bad file touched by the util
 		// sleep 2 is for watch action, sleep 10 is for RUN action
 
-		if strings.Contains(output, "Watched directory does not exist") {
+		if strings.Contains(output, "The directory specified for file watching does not exist") {
 
 			log.Println("pass")
 		} else {
@@ -301,9 +299,9 @@ func TestWatchActionDebug(t *testing.T) {
 		log.Printf("error is:  %v\n", err)
 		// the count should only be one, it will not match on the .go file or the .bad file touched by the util
 		// sleep 2 is for watch action, sleep 10 is for RUN action
-		log.Printf("COUNT OF JAVA TOUCHES: %v %v\n", strings.Contains(output, "Running: sleep 10"), strings.Count(output, "Running: sleep 25"))
+		log.Printf("COUNT OF JAVA TOUCHES: %v %v\n", strings.Contains(output, "Running APPSODY_RUN,APPSODY_DEBUG or APPSODY_TEST async: sleep 10"), strings.Count(output, "Running command:  sleep 25"))
 
-		if strings.Contains(output, "Running: sleep 10") && strings.Count(output, "Running: sleep 25") == 1 {
+		if strings.Contains(output, "Running APPSODY_RUN,APPSODY_DEBUG or APPSODY_TEST async: sleep 10") && strings.Count(output, "Running command:  sleep 25 for process type ") == 1 {
 			log.Println("pass")
 		} else {
 			t.Fail()
@@ -348,7 +346,7 @@ func TestAA(t *testing.T) {
 		log.Printf("error is:  %v\n", err)
 		// the count should only be one, it will not match on the .go file or the .bad file touched by the util
 		// sleep 2 is for watch action, sleep 10 is for RUN action
-		if strings.Count(output, "Running: ls -l") == 1 {
+		if strings.Count(output, "Running command:  ls -l") == 2 {
 			log.Println("pass")
 		} else {
 			t.Fail()
