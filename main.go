@@ -341,7 +341,7 @@ func runPrep(commandString string) (*exec.Cmd, error) {
 	cmd := exec.Command("/bin/bash", "-c", commandString)
 	ControllerDebug.log("Set workdir:  " + workDir)
 	cmd.Dir = workDir
-
+	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
@@ -360,7 +360,7 @@ func startProcess(commandString string, theProcessType ProcessType) (*exec.Cmd, 
 	cmd := exec.Command("/bin/bash", "-c", commandString)
 	ControllerDebug.log("Set workdir:  " + workDir)
 	cmd.Dir = workDir
-
+	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
