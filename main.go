@@ -594,11 +594,15 @@ func main() {
 
 	errorMessage := ""
 	var errWorkDir error
+	var disableWatcher bool
 
 	mode := flag.String("mode", "run", "This is the mode the controller runs in: run, debug or test")
 	flag.BoolVar(&verbose, "verbose", false, "Turns on debug output and logging ")
 	flag.BoolVar(&vmode, "v", false, "Turns on debug output and logging ")
+	flag.BoolVar(&disableWatcher, "no-watcher", false, "Disable file watching regardless of environment variables.")
+
 	flag.Parse()
+
 	klogFlags = flag.NewFlagSet("klog", flag.ExitOnError)
 	klog.InitFlags(klogFlags)
 
@@ -608,6 +612,10 @@ func main() {
 
 	}
 	_ = klogFlags.Set("skip_headers", "true")
+
+	if disableWatcher {
+		ControllerInfo.log("File watching has been turned off at the request of the CLI.")
+	}
 
 	ControllerDebug.log("Running Appsody Controller version " + VERSION)
 
@@ -656,8 +664,8 @@ func main() {
 	}
 	ControllerDebug.log("File change command: " + fileChangeCommand)
 
-	if fileChangeCommand == "" {
-		ControllerDebug.log("The fileChangeCommand environment variable APPSODY_RUN/DEBUG/TEST_ON_CHANGE is unspecified.")
+	if fileChangeCommand == "" || disableWatcher {
+		ControllerDebug.log("The fileChangeCommand environment variable APPSODY_RUN/DEBUG/TEST_ON_CHANGE is unspecified or file watching was disabled by the CLI.")
 		ControllerDebug.log("Running APPSODY_RUN,APPSODY_DEBUG or APPSODY_TEST sync: " + startCommand)
 		runCommands(startCommand, server, false)
 	} else {
@@ -684,11 +692,12 @@ func main() {
 		dirs = appsodyMOUNTS
 	}
 
-	if fileChangeCommand != "" {
+	if fileChangeCommand != "" && !disableWatcher {
 
 		err = runWatcher(fileChangeCommand, dirs, stopWatchServerOnChange)
 	} else {
-		ControllerInfo.log("The file watcher is not running because no APPSODY_RUN/TEST/DEBUG_ON_CHANGE action was specified.")
+
+		ControllerInfo.log("The file watcher is not running because no APPSODY_RUN/TEST/DEBUG_ON_CHANGE action was specified or it has been disabled using the --no-watcher flag.")
 	}
 	if err != nil {
 		errorMessage = "Error running the file watcher: "
