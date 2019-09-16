@@ -440,8 +440,8 @@ func runWatcher(fileChangeCommand string, dirs []string, killServer bool) error 
 			select {
 			case event := <-w.Event:
 				ControllerDebug.log("File watch event detected for:  " + event.Path)
-				if unwatchDir(event.Path) {
-					ControllerDebug.log("The path ", event.Path, " is not to be watched")
+				if unwatchDir(event.Path) || event.IsDir() {
+					ControllerDebug.log("The path ", event.Path, " is not to be watched. Or this is a directory event which will not be watched.")
 				} else {
 					ControllerDebug.log("Determining if file or directory matches REGEX for:  " + event.Name())
 					if r.MatchString(event.Name()) {
