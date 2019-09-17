@@ -345,7 +345,7 @@ func runPrep(commandString string) (*exec.Cmd, error) {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
 	ControllerInfo.log("Running APPSODY_PREP command: " + commandString)
 	err = cmd.Run()
 
@@ -364,7 +364,7 @@ func startProcess(commandString string, theProcessType ProcessType) (*exec.Cmd, 
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
 	ControllerInfo.log("Running command:  " + commandString)
 	err = cmd.Start()
 
@@ -440,7 +440,7 @@ func runWatcher(fileChangeCommand string, dirs []string, killServer bool) error 
 			select {
 			case event := <-w.Event:
 				ControllerDebug.log("File watch event detected for:  " + event.Path)
-				if unwatchDir(event.Path) || event.IsDir() {
+				if unwatchDir(event.Path) {
 					ControllerDebug.log("The path ", event.Path, " is not to be watched. Or this is a directory event which will not be watched.")
 				} else {
 					ControllerDebug.log("Determining if file or directory matches REGEX for:  " + event.Name())
