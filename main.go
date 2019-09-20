@@ -31,7 +31,7 @@ import (
 )
 
 var (
-	VERSION = "vlatest"
+	VERSION = "0.6.0"
 )
 var appsodyWATCHIGNOREDIR []string
 var appsodyWATCHDIRS []string    // # regex of dirs/files to watch for changes. optional, default to mounts
@@ -53,6 +53,7 @@ var appsodyTESTKILL bool
 var workDir string
 var klogFlags *flag.FlagSet
 var verbose bool
+var version bool
 var vmode bool
 
 type ProcessType int
@@ -600,12 +601,17 @@ func main() {
 	flag.BoolVar(&verbose, "verbose", false, "Turns on debug output and logging ")
 	flag.BoolVar(&vmode, "v", false, "Turns on debug output and logging ")
 	flag.BoolVar(&disableWatcher, "no-watcher", false, "Disable file watching regardless of environment variables.")
+	flag.BoolVar(&version, "version", false, "Prints the controller version and exits")
 
 	flag.Parse()
 
 	klogFlags = flag.NewFlagSet("klog", flag.ExitOnError)
 	klog.InitFlags(klogFlags)
 
+	if version {
+		fmt.Println(VERSION)
+		os.Exit(0)
+	}
 	if vmode || verbose {
 		// set debug mode
 		_ = klogFlags.Set("v", "4")
