@@ -31,7 +31,7 @@ import (
 )
 
 var (
-	VERSION = "0.6.0"
+	VERSION = "vlatest"
 )
 var appsodyWATCHIGNOREDIR []string
 var appsodyWATCHDIRS []string    // # regex of dirs/files to watch for changes. optional, default to mounts
