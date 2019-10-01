@@ -384,20 +384,6 @@ func waitProcess(cmd *exec.Cmd, theProcessType ProcessType) error {
 	return err
 }
 
-func unwatchDir(path string) bool {
-	unwatch := false
-	if appsodyWATCHIGNOREDIR != nil {
-		for i := 0; i < len(appsodyWATCHIGNOREDIR); i++ {
-			if strings.HasPrefix(path, appsodyWATCHIGNOREDIR[i]) {
-				unwatch = true
-				break
-			}
-		}
-	}
-	return unwatch
-
-}
-
 func runWatcher(fileChangeCommand string, dirs []string, killServer bool) error {
 	errorMessage := ""
 	var err error
