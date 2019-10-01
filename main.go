@@ -394,6 +394,15 @@ func runWatcher(fileChangeCommand string, dirs []string, killServer bool) error 
 
 	r := regexp.MustCompile(appsodyWATCHREGEX)
 	w := watcher.New()
+	for _, ignoredir := range appsodyWATCHIGNOREDIR {
+		r1 := regexp.MustCompile("^" + ignoredir)
+		fmt.Println("ignoring: ", r1)
+		w.AddFilterHook(watcher.NegativeFilterHook(r1, true))
+	}
+
+	w.AddFilterHook(watcher.NoDirectoryFilterHook())
+	w.AddFilterHook(watcher.RegexFilterHook(r, false))
+	w.SetMaxEvents(1)
 	for d := 0; d < len(dirs); d++ {
 		// Watch each directory specified recursively for changes.
 		currentDir := dirs[d]
@@ -414,26 +423,19 @@ func runWatcher(fileChangeCommand string, dirs []string, killServer bool) error 
 
 	}
 
-	w.SetMaxEvents(1)
-
 	// Only files that match the regular expression during file listings
 	// will be watched.  Currently we watch java, js, and go files.
 	// We may add an environment variable to add to this list
 
 	//handle the ignore dirs by using a negative filter hook
-	for _, ignoredir := range appsodyWATCHIGNOREDIR {
-		r1 := regexp.MustCompile("^" + ignoredir)
-		w.AddFilterHook(watcher.NegativeFilterHook(r1, true))
-	}
 
-	w.AddFilterHook(watcher.NoDirectoryFilterHook())
-	w.AddFilterHook(watcher.RegexFilterHook(r, false))
+	// Start the watching process - it'll check for changes every "n" ms.
 
 	go func() {
 		for {
 			select {
 			case event := <-w.Event:
-				ControllerDebug.log("File watch event detected for:  " + event.Path)
+				fmt.Println("File watch event detected for:  " + event.String())
 
 				ControllerDebug.log("About to perform the ON_CHANGE action.")
 
@@ -451,7 +453,6 @@ func runWatcher(fileChangeCommand string, dirs []string, killServer bool) error 
 		}
 	}()
 
-	// Start the watching process - it'll check for changes every "n" ms.
 	ControllerDebug.log("The watch interval is set to: ", appsodyWATCHINTERVAL, " seconds.")
 	if err = w.Start(appsodyWATCHINTERVAL); err != nil {
 		errorMessage = "Could not start the watcher "
@@ -482,7 +483,6 @@ func runCommands(commandString string, theProcessType ProcessType, killServer bo
 	cmps.mu.Lock()
 
 	if theProcessType == server {
-
 		if appsodyPREP != "" {
 			ControllerDebug.log("Running APPSODY_PREP command: ", appsodyPREP)
 
@@ -654,16 +654,6 @@ func main() {
 	}
 	ControllerDebug.log("File change command: " + fileChangeCommand)
 
-	if fileChangeCommand == "" || disableWatcher {
-		ControllerDebug.log("The fileChangeCommand environment variable APPSODY_RUN/DEBUG/TEST_ON_CHANGE is unspecified or file watching was disabled by the CLI.")
-		ControllerDebug.log("Running APPSODY_RUN,APPSODY_DEBUG or APPSODY_TEST sync: " + startCommand)
-		runCommands(startCommand, server, false)
-	} else {
-		ControllerDebug.log("Running APPSODY_RUN,APPSODY_DEBUG or APPSODY_TEST async: " + startCommand)
-
-		go runCommands(startCommand, server, false)
-	}
-
 	// use the appropriate server on change setting
 	if debugMode {
 
@@ -681,7 +671,15 @@ func main() {
 	} else {
 		dirs = appsodyMOUNTS
 	}
+	if fileChangeCommand == "" || disableWatcher {
+		ControllerDebug.log("The fileChangeCommand environment variable APPSODY_RUN/DEBUG/TEST_ON_CHANGE is unspecified or file watching was disabled by the CLI.")
+		ControllerDebug.log("Running APPSODY_RUN,APPSODY_DEBUG or APPSODY_TEST sync: " + startCommand)
+		runCommands(startCommand, server, false)
+	} else {
+		ControllerDebug.log("Running APPSODY_RUN,APPSODY_DEBUG or APPSODY_TEST async: " + startCommand)
 
+		go runCommands(startCommand, server, false)
+	}
 	if fileChangeCommand != "" && !disableWatcher {
 
 		err = runWatcher(fileChangeCommand, dirs, stopWatchServerOnChange)
