@@ -396,7 +396,6 @@ func runWatcher(fileChangeCommand string, dirs []string, killServer bool) error 
 	w := watcher.New()
 	for _, ignoredir := range appsodyWATCHIGNOREDIR {
 		r1 := regexp.MustCompile("^" + ignoredir)
-		fmt.Println("ignoring: ", r1)
 		w.AddFilterHook(watcher.NegativeFilterHook(r1, true))
 	}
 	// These filter hooks MUST be added prior do adding recursive directories
