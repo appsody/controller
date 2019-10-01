@@ -2,12 +2,12 @@
 
 
 [[projects]]
-  digest = "1:8bf836641ef3aa09783241b6b36f330ddab9301cf4f787288ab5de232a8f97b3"
-  name = "github.com/radovskyb/watcher"
+  branch = "master"
+  digest = "1:ba6192d0ab731c54416f3f668221b2cf2153739a318b7405d9f83d765cad8086"
+  name = "github.com/appsody/watcher"
   packages = ["."]
   pruneopts = "UT"
-  revision = "d8b41ca2397a9b5cfc26adb10edbbcde40187a87"
-  version = "v1.0.6"
+  revision = "171231a71ba9e0672b75c6d70ebc4e119725587c"
 
 [[projects]]
   digest = "1:c696379ad201c1e86591785579e16bf6cf886c362e9a7534e8eb0d1028b20582"
@@ -21,7 +21,7 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-    "github.com/radovskyb/watcher",
+    "github.com/appsody/watcher",
     "k8s.io/klog",
   ]
   solver-name = "gps-cdcl"

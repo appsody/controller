@@ -26,7 +26,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/radovskyb/watcher"
+	"github.com/appsody/watcher"
 	"k8s.io/klog"
 )
 
@@ -434,6 +434,13 @@ func runWatcher(fileChangeCommand string, dirs []string, killServer bool) error 
 	// will be watched.  Currently we watch java, js, and go files.
 	// We may add an environment variable to add to this list
 
+	//handle the ignore dirs by using a negative filter hook
+	for _, ignoredir := range appsodyWATCHIGNOREDIR {
+		r1 := regexp.MustCompile("^" + ignoredir)
+		w.AddFilterHook(watcher.NegativeFilterHook(r1, true))
+	}
+
+	w.AddFilterHook(watcher.NoDirectoryFilterHook())
 	w.AddFilterHook(watcher.RegexFilterHook(r, false))
 
 	go func() {
@@ -441,20 +448,11 @@ func runWatcher(fileChangeCommand string, dirs []string, killServer bool) error 
 			select {
 			case event := <-w.Event:
 				ControllerDebug.log("File watch event detected for:  " + event.Path)
-				if unwatchDir(event.Path) {
-					ControllerDebug.log("The path ", event.Path, " is not to be watched. Or this is a directory event which will not be watched.")
-				} else {
-					ControllerDebug.log("Determining if file or directory matches REGEX for:  " + event.Name())
-					if r.MatchString(event.Name()) {
 
-						ControllerDebug.log("About to perform the ON_CHANGE action.")
+				ControllerDebug.log("About to perform the ON_CHANGE action.")
 
-						// Restart the watcher as a thread so we can do a wait to avoid zombie in ps -ef
-						if fileChangeCommand != "" {
-							go runCommands(fileChangeCommand, fileWatcher, killServer)
-						}
-
-					}
+				if fileChangeCommand != "" {
+					go runCommands(fileChangeCommand, fileWatcher, killServer)
 				}
 
 			case err := <-w.Error:
