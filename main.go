@@ -399,7 +399,8 @@ func runWatcher(fileChangeCommand string, dirs []string, killServer bool) error 
 		fmt.Println("ignoring: ", r1)
 		w.AddFilterHook(watcher.NegativeFilterHook(r1, true))
 	}
-
+	// These filter hooks MUST be added prior do adding recursive directories
+	// otherwise there is a timing window at startup and unwanted events will be proccessed.
 	w.AddFilterHook(watcher.NoDirectoryFilterHook())
 	w.AddFilterHook(watcher.RegexFilterHook(r, false))
 	w.SetMaxEvents(1)
@@ -435,7 +436,7 @@ func runWatcher(fileChangeCommand string, dirs []string, killServer bool) error 
 		for {
 			select {
 			case event := <-w.Event:
-				fmt.Println("File watch event detected for:  " + event.String())
+				ControllerDebug.log("File watch event detected for:  " + event.String())
 
 				ControllerDebug.log("About to perform the ON_CHANGE action.")
 
