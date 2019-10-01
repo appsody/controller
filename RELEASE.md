@@ -7,9 +7,13 @@ The Appsody Controller is made available by creating a tagged GitHub release:
 * Describe the release with your release notes, including a list of the features added by the release, a list of the major issues that are resolved by the release, caveats, known issues.
 * Click _Publish release_
 
-These steps will trigger the `deploy` stage of the build process, as defined in `.travis.yml`. The `deploy` stage, if successful, will produce the following results:
-* The release page will be populated with the build artifacts (binary for the controller, Source Code .zip and Source Code .tar.gz files)
-
+### Monitor the build
+1. Watch the [Travis build](https://travis-ci.com/appsody/controller) for the release and ensure it passes. The build will include the `deploy` stage of the build process as defined in `.travis.yml`. The `deploy` stage, if successful, will produce the following results:
+    * The release page will be populated with the build artifacts:
+    * appsody-controller
+    * Source Code .zip
+    * Source Code .tar.gz files
+   
 # Release schedule
 We plan to release the Appsody Controller at the end of each sprint - approximately every two weeks.
 
