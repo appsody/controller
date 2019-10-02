@@ -68,7 +68,11 @@ This can be specified in several ways (note --verbose and -v are interchangeable
 ## Controller behavior
 
 - As of release 0.2.5 only file related events will trigger ON_CHANGE actions by the controller.  Directory events such as mkdir, rmdir, chmod, etc will not trigger ON_CHANGE actions.
-- As of release 0.2.5 a potential problem with how evnets occuring in the APPSODY_WATCH_IGNORE_DIR  are handled has been fixed.  Such events are now pre processed by the watcher code, rather than post processed once the event reaches the controller.
+- As of release 0.2.5 a potential problem with how events occuring in the APPSODY_WATCH_IGNORE_DIR are handled has been fixed.  Such events are now pre processed by the watcher code, rather than post processed once the event reaches the controller.
+
+## Known issues
+
+If the appsody stack of interest uses a script file (.sh for example) that is then edited by the `vi` editor while the script is running, the file modification time is not updated on the container file system until the script ends.  What this means is that the ON_CHANGE action is not triggered when `vi` write the file.
 
 ## Contributing
 
