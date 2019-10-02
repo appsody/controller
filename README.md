@@ -72,7 +72,7 @@ This can be specified in several ways (note --verbose and -v are interchangeable
 
 ## Known issues
 
-If the appsody stack of interest uses a script file (.sh for example) that is then edited by the `vi` editor while the script is running, the file modification time is not updated on the container file system until the script ends.  What this means is that the ON_CHANGE action is not triggered when `vi` write the file.
+If the appsody stack of interest uses a script file (.sh for example) that is then edited by the `vi` editor while the script is running, the file modification time is not updated on the container file system until the script ends.  What this means is that the ON_CHANGE action is not triggered when `vi` writes the file.
 
 ## Contributing
 
