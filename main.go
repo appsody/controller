@@ -440,7 +440,7 @@ func runWatcher(fileChangeCommand string, dirs []string, killServer bool) error 
 				ControllerDebug.log("About to perform the ON_CHANGE action.")
 
 				if fileChangeCommand != "" {
-					go runCommands(fileChangeCommand, fileWatcher, killServer)
+					go runCommands(fileChangeCommand, fileWatcher, killServer, false)
 				}
 
 			case err := <-w.Error:
@@ -469,7 +469,7 @@ func runWatcher(fileChangeCommand string, dirs []string, killServer bool) error 
    determine if we need to kill the server process
 
 */
-func runCommands(commandString string, theProcessType ProcessType, killServer bool) {
+func runCommands(commandString string, theProcessType ProcessType, killServer bool, noWatcher bool) {
 
 	var cmd *exec.Cmd
 	var err error
@@ -502,9 +502,24 @@ func runCommands(commandString string, theProcessType ProcessType, killServer bo
 		mutexUnlocked = true
 
 		err = waitProcess(cmd, theProcessType)
+		if noWatcher {
+			if err != nil {
+				if exitErr, ok := err.(*exec.ExitError); ok {
 
-		if err != nil {
-			ControllerInfo.log("Wait received error on APPSODY_RUN/DEBUG/TEST ", err)
+					statusCode := exitErr.ExitCode()
+					ControllerError.log("Wait received error with status code: " + strconv.Itoa(statusCode) + " due to error: " + err.Error())
+					os.Exit(statusCode)
+					// The program has exited with an exit code != 0
+
+				} else {
+					ControllerError.log("Could not determine exit code for error: ", err)
+					os.Exit(1)
+				}
+			}
+		} else {
+			if err != nil {
+				ControllerInfo.log("Wait received error on APPSODY_RUN/DEBUG/TEST ", err)
+			}
 		}
 	} else {
 		ControllerDebug.log("Inside the ON_CHANGE path")
@@ -674,11 +689,11 @@ func main() {
 	if fileChangeCommand == "" || disableWatcher {
 		ControllerDebug.log("The fileChangeCommand environment variable APPSODY_RUN/DEBUG/TEST_ON_CHANGE is unspecified or file watching was disabled by the CLI.")
 		ControllerDebug.log("Running APPSODY_RUN,APPSODY_DEBUG or APPSODY_TEST sync: " + startCommand)
-		runCommands(startCommand, server, false)
+		runCommands(startCommand, server, false, true)
 	} else {
 		ControllerDebug.log("Running APPSODY_RUN,APPSODY_DEBUG or APPSODY_TEST async: " + startCommand)
 
-		go runCommands(startCommand, server, false)
+		go runCommands(startCommand, server, false, false)
 	}
 	if fileChangeCommand != "" && !disableWatcher {
 
