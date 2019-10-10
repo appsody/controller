@@ -440,7 +440,11 @@ func runWatcher(fileChangeCommand string, dirs []string, killServer bool) error 
 				ControllerDebug.log("About to perform the ON_CHANGE action.")
 
 				if fileChangeCommand != "" {
+<<<<<<< HEAD
 					go runCommands(fileChangeCommand, fileWatcher, killServer, false)
+=======
+					go runCommands(fileChangeCommand, fileWatcher, killServer)
+>>>>>>> 74154c47b876248c83c6513a76282d1b562899e3
 				}
 
 			case err := <-w.Error:
@@ -689,11 +693,19 @@ func main() {
 	if fileChangeCommand == "" || disableWatcher {
 		ControllerDebug.log("The fileChangeCommand environment variable APPSODY_RUN/DEBUG/TEST_ON_CHANGE is unspecified or file watching was disabled by the CLI.")
 		ControllerDebug.log("Running APPSODY_RUN,APPSODY_DEBUG or APPSODY_TEST sync: " + startCommand)
+<<<<<<< HEAD
 		runCommands(startCommand, server, false, true)
 	} else {
 		ControllerDebug.log("Running APPSODY_RUN,APPSODY_DEBUG or APPSODY_TEST async: " + startCommand)
 
 		go runCommands(startCommand, server, false, false)
+=======
+		runCommands(startCommand, server, false)
+	} else {
+		ControllerDebug.log("Running APPSODY_RUN,APPSODY_DEBUG or APPSODY_TEST async: " + startCommand)
+
+		go runCommands(startCommand, server, false)
+>>>>>>> 74154c47b876248c83c6513a76282d1b562899e3
 	}
 	if fileChangeCommand != "" && !disableWatcher {
 
