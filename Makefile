@@ -51,7 +51,7 @@ clean: ## Removes existing build artifacts in order to get a fresh build
 
 .PHONY: build
 build: ## Build binary for linux stores it in the build/ dir
-	GOOS=linux GOARCH=amd64 go build -o $(BUILD_PATH)/$(COMMAND) -ldflags "-X main.VERSION=$(VERSION)"
+	GOOS=linux CGO_ENABLED=0 GOARCH=amd64 go build -o $(BUILD_PATH)/$(COMMAND) -ldflags "-X main.VERSION=$(VERSION)"
 
 .PHONY: package
 package: build ## Build the linux binary and stores it in package/ dir
