@@ -67,7 +67,8 @@ func (e Op) String() string {
 // directory and the type of event that's occurred and the full path of the file.
 type Event struct {
 	Op
-	Path string
+	Path    string
+	OldPath string
 	os.FileInfo
 }
 
@@ -107,6 +108,57 @@ func RegexFilterHook(r *regexp.Regexp, useFullPath bool) FilterFileHookFunc {
 
 		// No match.
 		return ErrSkip
+	}
+}
+
+// Copyright © 2019 IBM Corporation and others.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+//The following additions are  available under the same license as the rest of the code.
+
+// NoDirectoryFilterHook will return ErrSkip if this is a directory
+func NoDirectoryFilterHook() FilterFileHookFunc {
+	return func(info os.FileInfo, fullPath string) error {
+		if info.IsDir() {
+			return ErrSkip
+		}
+		return nil
+
+	}
+}
+
+// NegativeFilterHook will return ErrSkip if there is a match as these files/dirs should not cause events
+// bo be generated.  If there is no match, then nil is returned
+func NegativeFilterHook(r *regexp.Regexp, useFullPath bool) FilterFileHookFunc {
+	return func(info os.FileInfo, fullPath string) error {
+		str := info.Name()
+
+		if useFullPath {
+			str = fullPath
+		}
+
+		// Match negative
+
+		matched := r.MatchString(str)
+
+		if matched {
+			return ErrSkip
+		}
+
+		// No match.
+		return nil
+
 	}
 }
 
@@ -636,14 +688,14 @@ func (w *Watcher) pollEvents(files map[string]os.FileInfo, evt chan Event,
 			select {
 			case <-cancel:
 				return
-			case evt <- Event{Write, path, info}:
+			case evt <- Event{Write, path, path, info}:
 			}
 		}
 		if oldInfo.Mode() != info.Mode() {
 			select {
 			case <-cancel:
 				return
-			case evt <- Event{Chmod, path, info}:
+			case evt <- Event{Chmod, path, path, info}:
 			}
 		}
 	}
@@ -654,7 +706,8 @@ func (w *Watcher) pollEvents(files map[string]os.FileInfo, evt chan Event,
 			if sameFile(info1, info2) {
 				e := Event{
 					Op:       Move,
-					Path:     fmt.Sprintf("%s -> %s", path1, path2),
+					Path:     path2,
+					OldPath:  path1,
 					FileInfo: info1,
 				}
 				// If they are from the same directory, it's a rename
@@ -680,14 +733,14 @@ func (w *Watcher) pollEvents(files map[string]os.FileInfo, evt chan Event,
 		select {
 		case <-cancel:
 			return
-		case evt <- Event{Create, path, info}:
+		case evt <- Event{Create, path, "", info}:
 		}
 	}
 	for path, info := range removes {
 		select {
 		case <-cancel:
 			return
-		case evt <- Event{Remove, path, info}:
+		case evt <- Event{Remove, path, path, info}:
 		}
 	}
 }

@@ -1,6 +1,21 @@
 # watcher
+// Copyright © 2019 IBM Corporation and others.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
-[![Build Status](https://travis-ci.org/radovskyb/watcher.svg?branch=master)](https://travis-ci.org/radovskyb/watcher)
+//The following additions are  available under the same license as the rest of the code.
+[![Build Status](https://travis-ci.com/appsody/watcher)](https://travis-ci.com/appsody/watcher)
+
 
 `watcher` is a Go package for watching for files or directory changes (recursively or non recursively) without using filesystem events, which allows it to work cross platform consistently.
 
@@ -15,15 +30,30 @@ Events contain the `os.FileInfo` of the file or directory that the event is base
 [Watcher Command](#command)  
 
 # Update
+- Event.OldPath has been added [Aug 17, 2019]
 - Added new file filter hooks (Including a built in regexp filtering hook) [Dec 12, 2018]
 - Event.Path for Rename and Move events is now returned in the format of `fromPath -> toPath`
 
 #### Chmod event is not supported under windows.
 
 # Installation
+// Copyright © 2019 IBM Corporation and others.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
+//The following additions are  available under the same license as the rest of the code.
 ```shell
-go get -u github.com/radovskyb/watcher/...
+go get -u github.com/appsody/watcher/...
 ```
 
 # Features
@@ -53,8 +83,22 @@ import (
 	"fmt"
 	"log"
 	"time"
+// Copyright © 2019 IBM Corporation and others.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
-	"github.com/radovskyb/watcher"
+//The following additions are  available under the same license as the rest of the code.
+	"github.com/appsody/watcher"
 )
 
 func main() {
