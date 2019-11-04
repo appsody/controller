@@ -33,7 +33,7 @@ deploy:
   - provider: script
     skip_cleanup: true
     script: bash ./build.sh
-  on:
-    tags: true
-    repo: appsody/controller
+    on:
+      tags: true
+      repo: appsody/controller
   
