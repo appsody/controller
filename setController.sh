@@ -1,5 +1,5 @@
 #!/bin/sh
-#Requires one parm - controller version
+
 set -e
 VERSION=`/appsody-controller --version`
 #echo Verifying presence of appsody-controller version $VERSION
