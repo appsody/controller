@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"os/signal"
 	"regexp"
 	"strconv"
 	"strings"
@@ -308,7 +309,7 @@ func setupEnvironmentVars() error {
 	return err
 }
 
-func killProcess(theProcessType ProcessType) error {
+func killProcess(theProcessType ProcessType, checkAttempts int) error {
 	var processPid int
 	var err error
 	if theProcessType == server {
@@ -319,10 +320,23 @@ func killProcess(theProcessType ProcessType) error {
 	ControllerDebug.log("Attempting to kill pid: ", processPid)
 
 	if processPid != 0 {
+		if cmps.processes[theProcessType].Signal(syscall.Signal(0)) != nil {
+			ControllerDebug.log("No such process for pid:  ", processPid)
+			err = nil
+		} else {
 
-		ControllerDebug.log("Killing pid:  ", processPid)
-		err = syscall.Kill(-processPid, syscall.SIGINT)
+			ControllerDebug.log("Killing pid:  ", processPid)
+			err = syscall.Kill(-processPid, syscall.SIGINT)
 
+			for i := 0; i < checkAttempts; i++ {
+				ControllerDebug.log("Process check ", theProcessType, i)
+				if cmps.processes[theProcessType].Signal(syscall.Signal(0)) != nil {
+					break //process is dead
+				} else {
+					time.Sleep(2 * time.Second)
+				}
+			}
+		}
 		cmps.processes[theProcessType] = nil
 		cmps.pids[theProcessType] = 0
 		if err != nil {
@@ -445,7 +459,6 @@ func runWatcher(fileChangeCommand string, dirs []string, killServer bool) error 
 
 			case err := <-w.Error:
 				ControllerWarning.log("An error occured in the file watcher ", err)
-
 			case <-w.Closed:
 				ControllerDebug.log("The file watcher is now closed")
 				return
@@ -526,7 +539,7 @@ func runCommands(commandString string, theProcessType ProcessType, killServer bo
 		// This is a watcher
 		if killServer {
 			ControllerDebug.log("APPSODY_RUN/DEBUG/TEST_ON_KILL is true, attempting to kill the corresponding process.")
-			err = killProcess(server)
+			err = killProcess(server, 0)
 			if err != nil {
 				// do nothing we continue after kill errors
 				ControllerWarning.log("The attempt to kill the process received an error ", err)
@@ -534,11 +547,12 @@ func runCommands(commandString string, theProcessType ProcessType, killServer bo
 		}
 		ControllerDebug.log("Killing the APPSODY_RUN/DEBUG/TEST_ON_CHANGE process.")
 
-		err = killProcess(fileWatcher)
+		err = killProcess(fileWatcher, 0)
 		if err != nil {
 			// do nothing we continue after kill errors
 			ControllerWarning.log("Killing the the APPSODY_RUN/DEBUG/TEST_ON_CHANGE process received error ", err)
 		}
+		go reapChildProcesses(2)
 
 		commandToUse := commandString
 		processTypeToUse := fileWatcher
@@ -695,6 +709,32 @@ func main() {
 
 		go runCommands(startCommand, server, false, false)
 	}
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
+	go func() {
+		<-c
+		cmps.mu.Lock()
+		defer cmps.mu.Unlock()
+		ControllerInfo.log("Inside signal handler for controller")
+		ControllerInfo.log("Killing the ON_CHANGE process")
+		err := killProcess(fileWatcher, 2)
+		if err != nil {
+			ControllerError.log("Received error during signal handler killing ON_CHANGE process", err)
+		}
+		ControllerInfo.log("Killing the server process")
+		err = killProcess(server, 2)
+		if err != nil {
+			ControllerError.log("Received error during signal handler killing the RUN/TEST/DEBUG process", err)
+		}
+		go reapChildProcesses(5) //run separately to make sure that we don't block
+		if err != nil {
+			ControllerError.log("Received error during signal handler reapChildProcesses", err)
+		}
+
+		ControllerInfo.log("Done processing controller signal handler.")
+	}()
+
 	if fileChangeCommand != "" && !disableWatcher {
 
 		err = runWatcher(fileChangeCommand, dirs, stopWatchServerOnChange)
@@ -706,6 +746,41 @@ func main() {
 		errorMessage = "Error running the file watcher: "
 		ControllerFatal.log(errorMessage, err)
 		os.Exit(1)
+	}
+
+}
+
+func reapChildProcesses(maxLimit int) {
+	countLimit := 0
+
+	for {
+
+		var wstatus syscall.WaitStatus
+		//WNOHANG means return if there are no child processes to wait for
+		pid, err := syscall.Wait4(-1, &wstatus, syscall.WNOHANG, nil)
+		ControllerDebug.log("Reaper pid/err is: ", pid, err)
+		if pid == 0 && countLimit < maxLimit && err == nil {
+			ControllerDebug.log("Reaper sleeping 1 second: ", pid)
+			time.Sleep(1 * time.Second)
+			countLimit++
+		}
+
+		if syscall.EINTR == err {
+			ControllerDebug.log("Signal Interupt: ", err)
+			break
+		}
+		if syscall.ECHILD == err {
+			ControllerDebug.log("No more child processes: ", err)
+			break
+		}
+
+		ControllerDebug.log("Max limit count: ", countLimit)
+
+		if countLimit >= maxLimit {
+			ControllerDebug.log("Max limit reached: ", maxLimit)
+			break
+		}
+
 	}
 
 }
