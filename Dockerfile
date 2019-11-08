@@ -1,5 +1,6 @@
 FROM busybox
-COPY ./setController.sh /setController.sh
+
 COPY ./package/appsody-controller /appsody-controller
-RUN chmod +x /setController.sh /appsody-controller
+RUN  chmod +x /appsody-controller
 WORKDIR /
+CMD ["cp","/appsody-controller","/.appsody/appsody-controller"]
