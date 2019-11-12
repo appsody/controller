@@ -78,7 +78,7 @@ In addition there is a CMD in the Dockerfile build which will cause the /appsody
 
 ## Building a test init-controller docker image
 
-The developer can build their own init-controller image to test with the CLI by using the build.sh script.
+The developer can build their own init-controller image to test with the CLI by using the build.sh script located at the root of this project.
 
 Specify the following environment variables:
 - TRAVIS_TAG 

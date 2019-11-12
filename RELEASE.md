@@ -13,9 +13,9 @@ The Appsody Controller is made available by creating a tagged GitHub release:
     * appsody-controller
     * Source Code .zip
     * Source Code .tar.gz files
-    * docker.io/appsody will have an image pushed to it
-        - init-controller:travis_tag
-            - The init-controller image will also be tagged as latest
+    * The image `appsody/init-controller:{tag}` will be pushed to docker.io
+        - Where `tag` is the travis tag of the build in Travis CI
+        - Note, the init-controller image will also be tagged as `latest`
     * Check to make sure this image has been created
    
 # Release schedule
