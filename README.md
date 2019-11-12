@@ -65,7 +65,7 @@ This can be specified in several ways (note --verbose and -v are interchangeable
 >--v=false   Debug logging is off  
 >--v=true   Debug logging is on  
 
-__--version returns the current version
+--version returns the current version
 
 ## The docker appsody/init-controller:{travis_tag} image
 
