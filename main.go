@@ -320,6 +320,7 @@ func killProcess(theProcessType ProcessType, checkAttempts int) error {
 	ControllerDebug.log("Attempting to kill pid: ", processPid)
 
 	if processPid != 0 {
+		// Check to see if the process is still alive to avoid unncessary kill steps
 		if cmps.processes[theProcessType].Signal(syscall.Signal(0)) != nil {
 			ControllerDebug.log("No such process for pid:  ", processPid)
 			err = nil
@@ -327,7 +328,7 @@ func killProcess(theProcessType ProcessType, checkAttempts int) error {
 
 			ControllerDebug.log("Killing pid:  ", processPid)
 			err = syscall.Kill(-processPid, syscall.SIGINT)
-
+			// If checkAttempts speified check and wait to make sure process was killed.
 			for i := 0; i < checkAttempts; i++ {
 				ControllerDebug.log("Process check ", theProcessType, i)
 				if cmps.processes[theProcessType].Signal(syscall.Signal(0)) != nil {
@@ -716,23 +717,24 @@ func main() {
 		<-c
 		cmps.mu.Lock()
 		defer cmps.mu.Unlock()
-		ControllerInfo.log("Inside signal handler for controller")
-		ControllerInfo.log("Killing the ON_CHANGE process")
-		err := killProcess(fileWatcher, 2)
+		ControllerDebug.log("Inside signal handler for controller")
+		ControllerDebug.log("Killing the ON_CHANGE process")
+		// In practice either the fileWatcher or server process will be alive, not both
+		err := killProcess(fileWatcher, 2) // we give 2 *2 seconds to kill the filewatcher/ON_CHANGE process
 		if err != nil {
 			ControllerError.log("Received error during signal handler killing ON_CHANGE process", err)
 		}
-		ControllerInfo.log("Killing the server process")
-		err = killProcess(server, 2)
+		ControllerDebug.log("Killing the server process")
+		err = killProcess(server, 2) // we give 2 *2 seconds to kill the server process
 		if err != nil {
 			ControllerError.log("Received error during signal handler killing the RUN/TEST/DEBUG process", err)
 		}
+		// 5 * 1 second waiting for reaping of child processes
+		// This call is allowed to complete by the fact that the docker stop allows 10 seconds for processeing
+		// prior to the sig kill
 		go reapChildProcesses(5) //run separately to make sure that we don't block
-		if err != nil {
-			ControllerError.log("Received error during signal handler reapChildProcesses", err)
-		}
 
-		ControllerInfo.log("Done processing controller signal handler.")
+		ControllerDebug.log("Done processing controller signal handler.")
 	}()
 
 	if fileChangeCommand != "" && !disableWatcher {
@@ -757,8 +759,11 @@ func reapChildProcesses(maxLimit int) {
 
 		var wstatus syscall.WaitStatus
 		//WNOHANG means return if there are no child processes to wait for
+		//This command will wait for processes that hae been reassigned
+		// to pid 1 after the server or fileWatcher/ON_CHANGE process is terminated
 		pid, err := syscall.Wait4(-1, &wstatus, syscall.WNOHANG, nil)
 		ControllerDebug.log("Reaper pid/err is: ", pid, err)
+		// If it is 0 that means no process was waiting atm, we will sleep and give a little more time
 		if pid == 0 && countLimit < maxLimit && err == nil {
 			ControllerDebug.log("Reaper sleeping 1 second: ", pid)
 			time.Sleep(1 * time.Second)
@@ -766,9 +771,11 @@ func reapChildProcesses(maxLimit int) {
 		}
 
 		if syscall.EINTR == err {
-			ControllerDebug.log("Signal Interupt: ", err)
+			// A Signal Interupt occured and we should stop processing
+			ControllerDebug.log("Signal Interrupt: ", err)
 			break
 		}
+		//This value means no child processes left waiting.
 		if syscall.ECHILD == err {
 			ControllerDebug.log("No more child processes: ", err)
 			break
