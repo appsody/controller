@@ -26,7 +26,7 @@ Currently the Appsody Controller has no dependencies
 ## Downstream Dependencies
 The Appsody CLI is heavily dependant on Appsody Controller.  
 
-In the current design, the CLI pulls the dockier.io/appsody/init-controller:{tag} image as needed. Subsequently, the appsody-controller binary is copied to a volume as needed.
+In the current design, the CLI pulls the docker.io/appsody/init-controller:{tag} image as needed. Subsequently, the appsody-controller binary is copied to a volume as needed.
 
 When a new Appsody Controller release is created, a corresponding Appsody CLI release must be created.  See the release notes process for Appsody CLI [here](https://github.com/appsody/appsody/blob/master/RELEASE.md)
 

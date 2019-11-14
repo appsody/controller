@@ -72,7 +72,7 @@ This can be specified in several ways (note --verbose and -v are interchangeable
 This image is built as part of the release/deploy process in travis.
 This image contains a copy of the appsody-controller binary placed at the `/` directory of the image.
 
-In addition there is a CMD in the Dockerfile build which will cause the /appsody-controller binary to be copied to the /.appsody directory, which is a volume known to the Appsody CLI.
+In addition, the Dockerfile contains a CMD that copies the controller binary to the /.appsody directory when the image is run by the Appsody CLI. The /.appsody directory is mounted on a volume known to the Appsody CLI:
 
 `CMD ["cp","/appsody-controller","/.appsody/appsody-controller"]`
 
@@ -95,12 +95,12 @@ The Appsody CLI makefile specifies a particular version of the appsody-controlle
 
 If a tester needs to test a different version of the controller with the CLI, there are two environment variables they can exported to test with a different version:
 
-APPSODY_CONTROLLER_VERSION will allow the tester to specify a different version of the appsody-controller, for instance 0.3.0 vs 0.3.1
+APPSODY_CONTROLLER_VERSION will allow the tester to specify a different version of the appsody-controller, for instance 0.3.0 vs 0.3.1:
 
 `export APPSODY_CONTROLLER_VERSION=0.3.0`
 
 APPSODY_CONTROLLER_IMAGE will allow the tester to specify a different image to use, this is very useful during development.
-For instance a developer could create a new image for the controller at docker.io/{org}/init-controller:{tag} and then specify this as the image to use when invoking the CLI.
+For instance a developer could create a new image for the controller at docker.io/{org}/init-controller:{tag} and then specify this as the image to use when invoking the CLI:
 
 `export APPSODY_CONTROLLER_IMAGE=mydockeraccount/my-controller:0.3.2`.
 
