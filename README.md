@@ -65,6 +65,47 @@ This can be specified in several ways (note --verbose and -v are interchangeable
 >--v=false   Debug logging is off  
 >--v=true   Debug logging is on  
 
+--version returns the current version
+
+## The docker appsody/init-controller:{travis_tag} image
+
+This image is built as part of the release/deploy process in travis.
+This image contains a copy of the appsody-controller binary placed at the `/` directory of the image.
+
+In addition, the Dockerfile contains a CMD that copies the controller binary to the /.appsody directory when the image is run by the Appsody CLI. The /.appsody directory is mounted on a volume known to the Appsody CLI:
+
+`CMD ["cp","/appsody-controller","/.appsody/appsody-controller"]`
+
+## Building a test init-controller docker image
+
+The developer can build their own init-controller image to test with the CLI by using the build.sh script located at the root of this project.
+
+Note that you must do make package prior to running the build.sh script as the Dockerfile will look for appsody-controller in the package directory.
+
+Specify the following environment variables:
+- TRAVIS_TAG 
+- DOCKER_ORG
+- DOCKER_USERNAME
+- DOCKER_PASSWORD
+
+This will build the init-controller image locally and push it to the corresponding DOCKER_ORG/DOCKER_USERNAME/init-controller:{TRAVIS_TAG} docker repository location where it will also be tagged as 'latest'.
+
+## Testing the controller with the Appsody CLI
+The Appsody CLI makefile specifies a particular version of the appsody-controller.  Which will cause a particular version of init-controller to be used.
+
+If a tester needs to test a different version of the controller with the CLI, there are two environment variables they can exported to test with a different version:
+
+APPSODY_CONTROLLER_VERSION will allow the tester to specify a different version of the appsody-controller, for instance 0.3.0 vs 0.3.1:
+
+`export APPSODY_CONTROLLER_VERSION=0.3.0`
+
+APPSODY_CONTROLLER_IMAGE will allow the tester to specify a different image to use, this is very useful during development.
+For instance a developer could create a new image for the controller at docker.io/{org}/init-controller:{tag} and then specify this as the image to use when invoking the CLI:
+
+`export APPSODY_CONTROLLER_IMAGE=mydockeraccount/my-controller:0.3.2`.
+
+If both are specified, APPSODY_CONTROLLER_IMAGE will be used.
+
 ## Controller behavior
 
 - As of release 0.2.4 only file related events will trigger ON_CHANGE actions by the controller.  Directory events such as mkdir, rmdir, chmod, etc will not trigger ON_CHANGE actions.
