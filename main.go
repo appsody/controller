@@ -55,6 +55,7 @@ var workDir string
 var klogFlags *flag.FlagSet
 var verbose bool
 var version bool
+var interactiveFlag bool
 var vmode bool
 
 type ProcessType int
@@ -352,12 +353,14 @@ func killProcess(theProcessType ProcessType, checkAttempts int) error {
 /*
 	runPrep
 */
-func runPrep(commandString string) (*exec.Cmd, error) {
+func runPrep(commandString string, interactive bool) (*exec.Cmd, error) {
 	var err error
 	cmd := exec.Command("/bin/bash", "-c", commandString)
 	ControllerDebug.log("Set workdir:  " + workDir)
 	cmd.Dir = workDir
-	cmd.Stdin = os.Stdin
+	if interactive {
+		cmd.Stdin = os.Stdin
+	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
@@ -371,12 +374,14 @@ func runPrep(commandString string) (*exec.Cmd, error) {
 /*
 	StartProcess
 */
-func startProcess(commandString string, theProcessType ProcessType) (*exec.Cmd, error) {
+func startProcess(commandString string, theProcessType ProcessType, interactive bool) (*exec.Cmd, error) {
 	var err error
 	cmd := exec.Command("/bin/bash", "-c", commandString)
 	ControllerDebug.log("Set workdir:  " + workDir)
 	cmd.Dir = workDir
-	cmd.Stdin = os.Stdin
+	if interactive {
+		cmd.Stdin = os.Stdin
+	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
@@ -399,7 +404,7 @@ func waitProcess(cmd *exec.Cmd, theProcessType ProcessType) error {
 	return err
 }
 
-func runWatcher(fileChangeCommand string, dirs []string, killServer bool) error {
+func runWatcher(fileChangeCommand string, dirs []string, killServer bool, interactive bool) error {
 	errorMessage := ""
 	var err error
 
@@ -455,7 +460,7 @@ func runWatcher(fileChangeCommand string, dirs []string, killServer bool) error 
 				ControllerDebug.log("About to perform the ON_CHANGE action.")
 
 				if fileChangeCommand != "" {
-					go runCommands(fileChangeCommand, fileWatcher, killServer, false)
+					go runCommands(fileChangeCommand, fileWatcher, killServer, false, interactive)
 				}
 
 			case err := <-w.Error:
@@ -483,7 +488,7 @@ func runWatcher(fileChangeCommand string, dirs []string, killServer bool) error 
    determine if we need to kill the server process
 
 */
-func runCommands(commandString string, theProcessType ProcessType, killServer bool, noWatcher bool) {
+func runCommands(commandString string, theProcessType ProcessType, killServer bool, noWatcher bool, interactive bool) {
 
 	var cmd *exec.Cmd
 	var err error
@@ -500,14 +505,14 @@ func runCommands(commandString string, theProcessType ProcessType, killServer bo
 		if appsodyPREP != "" {
 			ControllerDebug.log("Running APPSODY_PREP command: ", appsodyPREP)
 
-			_, err = runPrep(appsodyPREP)
+			_, err = runPrep(appsodyPREP, interactive)
 		}
 		if err != nil {
 			ControllerError.log("FATAL error APPSODY_PREP command received an error.  The controller is exiting: ", err)
 			os.Exit(1)
 		}
 		// keep going
-		cmd, err = startProcess(commandString, server)
+		cmd, err = startProcess(commandString, server, interactive)
 		ControllerDebug.log("Started RUN/DEBUG/TEST process")
 		if err != nil {
 			ControllerWarning.log("ERROR start server (APPSODY_RUN/DEBUG/TEST) received error ", err)
@@ -571,7 +576,7 @@ func runCommands(commandString string, theProcessType ProcessType, killServer bo
 		}
 		ControllerDebug.log("Starting process of type ", processTypeToString(processTypeToUse), " running command: ", commandToUse)
 
-		cmd, err = startProcess(commandToUse, processTypeToUse)
+		cmd, err = startProcess(commandToUse, processTypeToUse, interactive)
 
 		if err != nil {
 			ControllerWarning.log("Received and error starting process of type ", processTypeToString(processTypeToUse), " running command: ", commandToUse, " error received was: ", err)
@@ -616,6 +621,7 @@ func main() {
 	flag.BoolVar(&vmode, "v", false, "Turns on debug output and logging ")
 	flag.BoolVar(&disableWatcher, "no-watcher", false, "Disable file watching regardless of environment variables.")
 	flag.BoolVar(&version, "version", false, "Prints the controller version and exits")
+	flag.BoolVar(&interactiveFlag, "interactive", false, "Controller runs in interactive mode")
 
 	flag.Parse()
 
@@ -704,11 +710,11 @@ func main() {
 	if fileChangeCommand == "" || disableWatcher {
 		ControllerDebug.log("The fileChangeCommand environment variable APPSODY_RUN/DEBUG/TEST_ON_CHANGE is unspecified or file watching was disabled by the CLI.")
 		ControllerDebug.log("Running APPSODY_RUN,APPSODY_DEBUG or APPSODY_TEST sync: " + startCommand)
-		runCommands(startCommand, server, false, true)
+		runCommands(startCommand, server, false, true, interactiveFlag)
 	} else {
 		ControllerDebug.log("Running APPSODY_RUN,APPSODY_DEBUG or APPSODY_TEST async: " + startCommand)
 
-		go runCommands(startCommand, server, false, false)
+		go runCommands(startCommand, server, false, false, interactiveFlag)
 	}
 
 	c := make(chan os.Signal, 1)
@@ -733,13 +739,15 @@ func main() {
 		// This call is allowed to complete by the fact that the docker stop allows 10 seconds for processeing
 		// prior to the sig kill
 		go reapChildProcesses(5) //run separately to make sure that we don't block
-
+		// this is the fall back for interactive mode exit
+		time.Sleep(10 * time.Second)
+		os.Exit(0)
 		ControllerDebug.log("Done processing controller signal handler.")
 	}()
 
 	if fileChangeCommand != "" && !disableWatcher {
 
-		err = runWatcher(fileChangeCommand, dirs, stopWatchServerOnChange)
+		err = runWatcher(fileChangeCommand, dirs, stopWatchServerOnChange, interactiveFlag)
 	} else {
 
 		ControllerInfo.log("The file watcher is not running because no APPSODY_RUN/TEST/DEBUG_ON_CHANGE action was specified or it has been disabled using the --no-watcher flag.")
