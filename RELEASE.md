@@ -13,12 +13,24 @@ The Appsody Controller is made available by creating a tagged GitHub release:
     * appsody-controller
     * Source Code .zip
     * Source Code .tar.gz files
+    * The image `appsody/init-controller:{tag}` will be pushed to docker.io
+        - Where `tag` is the travis tag of the build in Travis CI
+        - Note, the init-controller image will also be tagged as `latest`
+    * Check to make sure this image has been created
    
 # Release schedule
-We plan to release the Appsody Controller at the end of each sprint - approximately every two weeks.
+Appsody Controller is released as needed.
 
 # Dependencies
 Currently the Appsody Controller has no dependencies
 ## Downstream Dependencies
-The Appsody CLI is heavily dependant on Appsody Controller.  When a new Appsody Controller release is created, a corresponding Appsody CLI release must be created.  See the release notes process for Appsody CLI [here](https://github.com/appsody/appsody/blob/master/RELEASE.md)
+The Appsody CLI is heavily dependant on Appsody Controller.  
+
+In the current design, the CLI pulls the docker.io/appsody/init-controller:{tag} image as needed. Subsequently, the appsody-controller binary is copied to a volume as needed.
+
+When a new Appsody Controller release is created, a corresponding Appsody CLI release must be created.  See the release notes process for Appsody CLI [here](https://github.com/appsody/appsody/blob/master/RELEASE.md)
+
+Specifically the appsody/appsody Makefile variable APPSODY_CONTROLLER_VERSION must be updated for the CLI when new controller versions are used.
+
+
 
