@@ -538,6 +538,7 @@ func runCommands(commandString string, theProcessType ProcessType, killServer bo
 					os.Exit(1)
 				}
 			}
+			reapChildProcesses(5)
 		} else {
 			if err != nil {
 				ControllerInfo.log("Wait received error on APPSODY_RUN/DEBUG/TEST ", err)
