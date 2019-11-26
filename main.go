@@ -327,7 +327,7 @@ func killProcess(theProcessType ProcessType, checkAttempts int) error {
 			err = nil
 		} else {
 
-			ControllerDebug.log("Killing pid:  ", processPid)
+			ControllerDebug.log("Killing pid:  ", -processPid)
 			err = syscall.Kill(-processPid, syscall.SIGINT)
 			// If checkAttempts speified check and wait to make sure process was killed.
 			for i := 0; i < checkAttempts; i++ {
@@ -527,14 +527,18 @@ func runCommands(commandString string, theProcessType ProcessType, killServer bo
 
 					statusCode := exitErr.ExitCode()
 					ControllerError.log("Wait received error with status code: " + strconv.Itoa(statusCode) + " due to error: " + err.Error())
+					reapChildProcesses(5)
 					os.Exit(statusCode)
 					// The program has exited with an exit code != 0
 
 				} else {
 					ControllerError.log("Could not determine exit code for error: ", err)
+					// run the reaper to clean up anything
+					reapChildProcesses(5)
 					os.Exit(1)
 				}
 			}
+			reapChildProcesses(5)
 		} else {
 			if err != nil {
 				ControllerInfo.log("Wait received error on APPSODY_RUN/DEBUG/TEST ", err)
@@ -558,7 +562,7 @@ func runCommands(commandString string, theProcessType ProcessType, killServer bo
 			// do nothing we continue after kill errors
 			ControllerWarning.log("Killing the the APPSODY_RUN/DEBUG/TEST_ON_CHANGE process received error ", err)
 		}
-		go reapChildProcesses(2)
+		go reapChildProcesses(5)
 
 		commandToUse := commandString
 		processTypeToUse := fileWatcher
@@ -707,22 +711,11 @@ func main() {
 	} else {
 		dirs = appsodyMOUNTS
 	}
-	if fileChangeCommand == "" || disableWatcher {
-		ControllerDebug.log("The fileChangeCommand environment variable APPSODY_RUN/DEBUG/TEST_ON_CHANGE is unspecified or file watching was disabled by the CLI.")
-		ControllerDebug.log("Running APPSODY_RUN,APPSODY_DEBUG or APPSODY_TEST sync: " + startCommand)
-		runCommands(startCommand, server, false, true, interactiveFlag)
-	} else {
-		ControllerDebug.log("Running APPSODY_RUN,APPSODY_DEBUG or APPSODY_TEST async: " + startCommand)
-
-		go runCommands(startCommand, server, false, false, interactiveFlag)
-	}
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 	go func() {
 		<-c
-		cmps.mu.Lock()
-		defer cmps.mu.Unlock()
 		ControllerDebug.log("Inside signal handler for controller")
 		ControllerDebug.log("Killing the ON_CHANGE process")
 		// In practice either the fileWatcher or server process will be alive, not both
@@ -735,15 +728,24 @@ func main() {
 		if err != nil {
 			ControllerError.log("Received error during signal handler killing the RUN/TEST/DEBUG process", err)
 		}
-		// 5 * 1 second waiting for reaping of child processes
-		// This call is allowed to complete by the fact that the docker stop allows 10 seconds for processeing
-		// prior to the sig kill
-		go reapChildProcesses(5) //run separately to make sure that we don't block
-		// this is the fall back for interactive mode exit
-		time.Sleep(10 * time.Second)
+		// 5 * .2 second waiting for reaping of child processes
+
+		reapChildProcesses(5)
 		os.Exit(0)
 		ControllerDebug.log("Done processing controller signal handler.")
 	}()
+
+	if fileChangeCommand == "" || disableWatcher {
+		ControllerDebug.log("The fileChangeCommand environment variable APPSODY_RUN/DEBUG/TEST_ON_CHANGE is unspecified or file watching was disabled by the CLI.")
+		ControllerDebug.log("Running APPSODY_RUN,APPSODY_DEBUG or APPSODY_TEST sync: " + startCommand)
+		runCommands(startCommand, server, false, true, interactiveFlag)
+
+	} else {
+		ControllerDebug.log("Running APPSODY_RUN,APPSODY_DEBUG or APPSODY_TEST async: " + startCommand)
+
+		go runCommands(startCommand, server, false, false, interactiveFlag)
+
+	}
 
 	if fileChangeCommand != "" && !disableWatcher {
 
@@ -773,8 +775,8 @@ func reapChildProcesses(maxLimit int) {
 		ControllerDebug.log("Reaper pid/err is: ", pid, err)
 		// If it is 0 that means no process was waiting atm, we will sleep and give a little more time
 		if pid == 0 && countLimit < maxLimit && err == nil {
-			ControllerDebug.log("Reaper sleeping 1 second: ", pid)
-			time.Sleep(1 * time.Second)
+			ControllerDebug.log("Reaper sleeping 200 millisecond: ", pid)
+			time.Sleep(200 * time.Millisecond)
 			countLimit++
 		}
 
