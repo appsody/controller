@@ -355,7 +355,7 @@ func killProcess(theProcessType ProcessType, checkAttempts int) error {
 */
 func runPrep(commandString string, interactive bool) (*exec.Cmd, error) {
 	var err error
-	cmd := exec.Command("/bin/bash", "-c", commandString)
+	cmd := exec.Command("/bin/sh", "-c", commandString)
 	ControllerDebug.log("Set workdir:  " + workDir)
 	cmd.Dir = workDir
 	if interactive {
@@ -376,7 +376,7 @@ func runPrep(commandString string, interactive bool) (*exec.Cmd, error) {
 */
 func startProcess(commandString string, theProcessType ProcessType, interactive bool) (*exec.Cmd, error) {
 	var err error
-	cmd := exec.Command("/bin/bash", "-c", commandString)
+	cmd := exec.Command("/bin/sh", "-c", commandString)
 	ControllerDebug.log("Set workdir:  " + workDir)
 	cmd.Dir = workDir
 	if interactive {
