@@ -727,7 +727,6 @@ func main() {
 		ControllerDebug.log("Done processing controller signal handler.")
 	}()
 
-
 	if appsodyPREP != "" {
 		ControllerDebug.log("Running APPSODY_PREP command: ", appsodyPREP)
 
