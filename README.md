@@ -115,6 +115,8 @@ If both are specified, APPSODY_CONTROLLER_IMAGE will be used.
 
 If the appsody stack of interest uses a script file (.sh for example) that is then edited by the `vi` editor while the script is running, the file modification time is not updated on the container file system until the script ends.  What this means is that the ON_CHANGE action is not triggered when `vi` writes the file.
 
+The vender watcher package code used by the controller uses filepath.Walk function from the path/filepath package to traverse the file system.  This function does not evaluate symlinks.  If the APPSODY_WATCH_DIR is a symlink or contains files and directories that are symlinks, it is possible that unexpected behavior may occur during file watching as the watcher may not be able to traverse symlinks or detect changes in the underlying file referenced by the symlink as expected.
+
 ## Contributing
 
 We welcome all contributions to the Appsody project. Please see our [Contributing guidelines](https://github.com/appsody/docs/blob/master/CONTRIBUTING.md)
