@@ -180,7 +180,7 @@ func computeSigInt(tempSigInt string) bool {
 func setupEnvironmentVars() error {
 
 	var err error
-	appsodySeparator := os.Getenv("APPSODY_SEPARATOR")
+	appsodySeparator := os.Getenv("APPSODY_MOUNT_SEPARATOR")
 	if appsodySeparator == "" {
 		appsodySeparator = ";"
 	}
@@ -252,7 +252,7 @@ func setupEnvironmentVars() error {
 	// split the watch dirs using ; separator
 	if tmpWatchDirs != "" {
 
-		appsodyWATCHDIRS = strings.Split(tmpWatchDirs, appsodySeparator) //APPSODY_SEPARATOR
+		appsodyWATCHDIRS = strings.Split(tmpWatchDirs, appsodySeparator)
 		for i := 0; i < len(appsodyWATCHDIRS); i++ {
 			appsodyWATCHDIRS[i] = strings.TrimSpace(appsodyWATCHDIRS[i])
 
@@ -261,7 +261,7 @@ func setupEnvironmentVars() error {
 	}
 	if tmpWATCHIGNOREDIR != "" {
 
-		appsodyWATCHIGNOREDIR = strings.Split(tmpWATCHIGNOREDIR, appsodySeparator) //APPSODY_SEPARATOR
+		appsodyWATCHIGNOREDIR = strings.Split(tmpWATCHIGNOREDIR, appsodySeparator)
 		for i := 0; i < len(appsodyWATCHIGNOREDIR); i++ {
 			appsodyWATCHIGNOREDIR[i] = strings.TrimSpace(appsodyWATCHIGNOREDIR[i])
 
@@ -272,7 +272,7 @@ func setupEnvironmentVars() error {
 	// split the mount dirs using ; separator
 	if tmpMountDirs != "" {
 
-		appsodyMOUNTS = strings.Split(tmpMountDirs, appsodySeparator) //APPSODY_SEPARATOR
+		appsodyMOUNTS = strings.Split(tmpMountDirs, appsodySeparator)
 		for i := 0; i < len(appsodyMOUNTS); i++ {
 			// check if there is a : separator
 			if strings.Contains(appsodyMOUNTS[i], ":") {
