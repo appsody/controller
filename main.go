@@ -502,15 +502,7 @@ func runCommands(commandString string, theProcessType ProcessType, killServer bo
 	cmps.mu.Lock()
 
 	if theProcessType == server {
-		if appsodyPREP != "" {
-			ControllerDebug.log("Running APPSODY_PREP command: ", appsodyPREP)
 
-			_, err = runPrep(appsodyPREP, interactive)
-		}
-		if err != nil {
-			ControllerError.log("FATAL error APPSODY_PREP command received an error.  The controller is exiting: ", err)
-			os.Exit(1)
-		}
 		// keep going
 		cmd, err = startProcess(commandString, server, interactive)
 		ControllerDebug.log("Started RUN/DEBUG/TEST process")
@@ -734,6 +726,16 @@ func main() {
 		os.Exit(0)
 		ControllerDebug.log("Done processing controller signal handler.")
 	}()
+
+	if appsodyPREP != "" {
+		ControllerDebug.log("Running APPSODY_PREP command: ", appsodyPREP)
+
+		_, err = runPrep(appsodyPREP, interactiveFlag)
+	}
+	if err != nil {
+		ControllerError.log("FATAL error APPSODY_PREP command received an error.  The controller is exiting: ", err)
+		os.Exit(1)
+	}
 
 	if fileChangeCommand == "" || disableWatcher {
 		ControllerDebug.log("The fileChangeCommand environment variable APPSODY_RUN/DEBUG/TEST_ON_CHANGE is unspecified or file watching was disabled by the CLI.")
