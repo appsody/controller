@@ -389,7 +389,7 @@ func TestTAAFail(t *testing.T) {
 		log.Printf("error is:  %v\n", err)
 		// the count should only be one, it will not match on the .go file or the .bad file touched by the util
 		// sleep 2 is for watch action, sleep 10 is for RUN action
-		if strings.Count(output, "bad: command not found") == 1 {
+		if strings.Count(output, "bad: command not found") == 1 || strings.Count(output, "bad: not found") == 1 {
 			log.Println("pass")
 		} else {
 			t.Fail()
