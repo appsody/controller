@@ -2,3 +2,4 @@
 /build
 /package
 .vscode/
+.DS_Store
