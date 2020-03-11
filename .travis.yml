@@ -38,11 +38,11 @@ deploy:
     file_glob: true
     on:
       tags: true
-      repo: appsody/controller
+      repo: cameronmcwilliam/controller
   - provider: script
     skip_cleanup: true
     script: bash ./build.sh
     on:
       tags: true
-      repo: appsody/controller
+      repo: cameronmcwilliam/controller
   
