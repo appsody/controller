@@ -88,9 +88,7 @@ function multi_arch_docker::buildx() {
 #   DOCKER_BASE ........ docker image base name to build
 #   TAGS ............... space separated list of docker image tags to build.
 function multi_arch_docker::build_and_push_all() {
-  for tag in $TAGS; do
-    multi_arch_docker::buildx -t "$DOCKER_BASE:$tag"
-  done
+    multi_arch_docker::buildx -t "$DOCKER_BASE:$TRAVIS_TAG"
 }
 
 # Test all pushed docker images.
@@ -100,8 +98,7 @@ function multi_arch_docker::build_and_push_all() {
 #   TAGS ............... space separated list of docker image tags to test.
 function multi_arch_docker::test_all() {
   for platform in $DOCKER_PLATFORMS; do
-    for tag in $TAGS; do
-      image="${DOCKER_BASE}:${tag}"
+      image="${DOCKER_BASE}:${TRAVIS_TAG}"
       msg="Testing docker image $image on platform $platform"
       line="${msg//?/=}"
       printf '\n%s\n%s\n%s\n' "${line}" "${msg}" "${line}"
@@ -109,15 +106,14 @@ function multi_arch_docker::test_all() {
 
       echo -n "Image architecture: "
       docker run --rm --entrypoint /bin/sh "$image" -c 'uname -m'
-
       # Run your test on the built image.
       docker run --rm -v "$PWD:/mnt" -w /mnt "$image"
-    done
   done
 }
 
 function multi_arch_docker::main() {
   # Set docker platforms for which to build.
+  export DOCKER_BASE='cameronmcwilliam/init-controller'
   export DOCKER_PLATFORMS='linux/amd64'
   DOCKER_PLATFORMS+=' linux/ppc64le'
   DOCKER_PLATFORMS+=' linux/s390x'

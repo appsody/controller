@@ -41,7 +41,7 @@ deploy:
   #     repo: CameronMcWilliam/controller
   - provider: script
     skip_cleanup: true
-    script: bash ./build.sh
+    script: source ./multi-arch-docker-ci.sh; set -ex; multi_arch_docker::main; set +x
     on:
       tags: true
       repo: CameronMcWilliam/controller
