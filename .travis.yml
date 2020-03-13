@@ -21,10 +21,6 @@ before_install:
 # skip because dependencies are baked in vendor dir
 install: true
 
-script:
-  - make lint
-  - make test
-
 # note before_deploy will run before each deploy provider
 before_deploy:
   - make VERSION=${TRAVIS_TAG} package
@@ -41,7 +37,7 @@ deploy:
   #     repo: CameronMcWilliam/controller
   - provider: script
     skip_cleanup: true
-    script: source ./multi-arch-docker-ci.sh; set -ex; multi_arch_docker::main; set +x
+    script: source ./build.sh; set -ex; multi_arch_docker::main; set +x
     on:
       tags: true
       repo: CameronMcWilliam/controller
