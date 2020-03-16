@@ -57,7 +57,7 @@ build: ## Build binary for linux stores it in the build/ dir
 .PHONY: package
 package: build ## Build the linux binary and stores it in package/ dir
 	mkdir -p $(PACKAGE_PATH)
-	cp -ap $(BUILD_PATH)/ $(PACKAGE_PATH)/
+	cp -ap $(BUILD_PATH)/. $(PACKAGE_PATH)/
 
 # Auto documented help from http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 .PHONY: help
