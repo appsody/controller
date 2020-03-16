@@ -12,6 +12,7 @@ go_import_path: github.com/appsody/controller
 services:
 - docker
 
+#Install later docker version
 before_install:
   - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
   - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
@@ -21,24 +22,28 @@ before_install:
 # skip because dependencies are baked in vendor dir
 install: true
 
+script:
+  - make lint
+  - make test
+
 # note before_deploy will run before each deploy provider
 before_deploy:
   - make VERSION=${TRAVIS_TAG} package
 
 deploy:
-  # - provider: releases
-  #   skip_cleanup: true
-  #   api_key:
-  #     secure: e04vuQPXH0L12u0FalaQBzgkpT/hEN0EZVQ6R+506v5kLB+tP2eT3x6q7peyz9RAvp8Tst5X5ui7xyiPpG7s7N69e+0SUXkUIz7+2HxCKZq7tdEkpjIc33Wrea7/6KaBA8Ud7aKgHSIxzQKiDwEX733UNLwBjHr28MnoLV7QkQvjLRufpaLCZycM2eEzPo4BpikhHQgRtgvhesISAOC8dy4nvA1MUZbNtgQe9igffKhOnbYlcK69J6Unw66tesZMAmFZ/UGTfx5QG3WcBMS5ILf6cUdmp4JKiteXqnmu2gBY1rNiNsbJZFbSvzq7mK63Id12fniX0Vja8aWYgCSlfmkci+qdQm4Y4hOf/cuejGVTTEO6U+nvLClZEa5Yt+j8ZV+n7DdLppwCIz91eQ5+FZIgMJNzOtcWolvABP97exB37IjvAh/z5A1YyADLI26Bv71koV3BKbqoapOtMkx/hjhoKu7VD4o/equ6qmLRa1Z07w/PrEaQA77zt7SWmJOMftTpk4wMkQWVtolR+oTaZOwMcmowNymYxKCGcG1bgiW8lSJ/TvDw10I9b7xdenZToOsLH3zxMo3VaudgCdTVlPsrk8oTiEV6+JihKLzf+5ntQKllSixWefc0KMpkDhLbBZ+6pZR/C1mVAWaQEDsV4F+o6yTW70Ifyan5I3xj108=
-  #   file: package/*
-  #   file_glob: true
-  #   on:
-  #     tags: true
-  #     repo: CameronMcWilliam/controller
+  - provider: releases
+    skip_cleanup: true
+    api_key:
+      secure: e04vuQPXH0L12u0FalaQBzgkpT/hEN0EZVQ6R+506v5kLB+tP2eT3x6q7peyz9RAvp8Tst5X5ui7xyiPpG7s7N69e+0SUXkUIz7+2HxCKZq7tdEkpjIc33Wrea7/6KaBA8Ud7aKgHSIxzQKiDwEX733UNLwBjHr28MnoLV7QkQvjLRufpaLCZycM2eEzPo4BpikhHQgRtgvhesISAOC8dy4nvA1MUZbNtgQe9igffKhOnbYlcK69J6Unw66tesZMAmFZ/UGTfx5QG3WcBMS5ILf6cUdmp4JKiteXqnmu2gBY1rNiNsbJZFbSvzq7mK63Id12fniX0Vja8aWYgCSlfmkci+qdQm4Y4hOf/cuejGVTTEO6U+nvLClZEa5Yt+j8ZV+n7DdLppwCIz91eQ5+FZIgMJNzOtcWolvABP97exB37IjvAh/z5A1YyADLI26Bv71koV3BKbqoapOtMkx/hjhoKu7VD4o/equ6qmLRa1Z07w/PrEaQA77zt7SWmJOMftTpk4wMkQWVtolR+oTaZOwMcmowNymYxKCGcG1bgiW8lSJ/TvDw10I9b7xdenZToOsLH3zxMo3VaudgCdTVlPsrk8oTiEV6+JihKLzf+5ntQKllSixWefc0KMpkDhLbBZ+6pZR/C1mVAWaQEDsV4F+o6yTW70Ifyan5I3xj108=
+    file: package/*
+    file_glob: true
+    on:
+      tags: true
+      repo: appsody/controller
   - provider: script
     skip_cleanup: true
     script: ./build.sh
     on:
       tags: true
-      repo: CameronMcWilliam/controller
+      repo: appsody/controller
   
