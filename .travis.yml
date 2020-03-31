@@ -12,6 +12,13 @@ go_import_path: github.com/appsody/controller
 services:
 - docker
 
+#Install later docker version
+before_install:
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+  - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+  - sudo apt-get update
+  - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
+
 # skip because dependencies are baked in vendor dir
 install: true
 
@@ -35,7 +42,7 @@ deploy:
       repo: appsody/controller
   - provider: script
     skip_cleanup: true
-    script: bash ./build.sh
+    script: ./build.sh
     on:
       tags: true
       repo: appsody/controller

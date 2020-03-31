@@ -51,12 +51,13 @@ clean: ## Removes existing build artifacts in order to get a fresh build
 
 .PHONY: build
 build: ## Build binary for linux stores it in the build/ dir
-	GOOS=linux CGO_ENABLED=0 GOARCH=amd64 go build -o $(BUILD_PATH)/$(COMMAND) -ldflags "-X main.VERSION=$(VERSION)"
+	chmod u+r+x go_build.sh
+	./go_build.sh $(VERSION)
 
 .PHONY: package
 package: build ## Build the linux binary and stores it in package/ dir
 	mkdir -p $(PACKAGE_PATH)
-	cp -p $(BUILD_PATH)/$(COMMAND) $(PACKAGE_PATH)/
+	cp -ap $(BUILD_PATH)/. $(PACKAGE_PATH)/
 
 # Auto documented help from http://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 .PHONY: help
